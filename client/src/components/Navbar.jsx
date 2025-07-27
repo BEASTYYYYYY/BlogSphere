@@ -8,6 +8,8 @@ import axios from 'axios';
 import debounce from 'lodash.debounce';
 import NotificationDropdown from './Notification';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const getBreadcrumbs = (pathname) => {
     const routes = {
         '/user': [{ label: 'Dashboard', to: '/user' }],
@@ -63,7 +65,7 @@ export default function Navbar({
     const dropdownRef = useRef(null);
     const location = useLocation();
     const navigate = useNavigate();
-    const { firebaseUser, mongoUser, logout } = useAuth(); // Get mongoUser
+    const { firebaseUser, mongoUser, logout } = useAuth();
 
     const breadcrumbs = getBreadcrumbs(location.pathname);
 
@@ -79,9 +81,15 @@ export default function Navbar({
                 return;
             }
             try {
-                const res = await axios.get(`/api/blogs?search=${encodeURIComponent(query.trim())}`);
-                setSearchResults(res.data);
-                setShowResults(true);
+                const res = await axios.get(`${API_BASE_URL}/blogs?search=${encodeURIComponent(query.trim())}`);
+                if (Array.isArray(res.data)) {
+                    setSearchResults(res.data);
+                    setShowResults(true);
+                } else {
+                    console.error("API returned non-array data for search results:", res.data);
+                    setSearchResults([]);
+                    setShowResults(false);
+                }
             } catch {
                 setSearchResults([]);
                 setShowResults(false);
@@ -138,12 +146,11 @@ export default function Navbar({
     }, [location.pathname]);
 
     const profileMenuItems = [
-        { label: 'Profile', icon: User, to: `/profile/${mongoUser?._id}` }, // Link to current user's profile
+        { label: 'Profile', icon: User, to: `/profile/${mongoUser?._id}` },
         { label: 'Settings', icon: Settings, to: '/settings' },
         { label: 'Logout', icon: LogOut, action: 'logout', danger: true }
     ];
 
-    // Determine the profile picture to display
     const userProfilePic = mongoUser?.profilePicture || mongoUser?.avatar;
     const userDisplayName = mongoUser?.displayName || mongoUser?.name || firebaseUser?.displayName || 'User';
     const userHandle = mongoUser?.email?.split('@')[0] || 'user';
@@ -184,7 +191,6 @@ export default function Navbar({
                             </nav>
                         </div>
 
-                        {/* Search Bar */}
                         <div className="flex-1 max-w-md mx-4 relative search-container">
                             <div className="relative">
                                 <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 transition-colors ${searchFocused
@@ -207,58 +213,57 @@ export default function Navbar({
                                 />
                             </div>
 
-                            {/* Floating Search Dropdown */}
                             {showResults && (
                                 <div className={`absolute left-0 right-0 mt-2 rounded-2xl backdrop-blur-xl shadow-2xl z-50 max-h-72 overflow-y-auto transform transition-all duration-300 ease-out ${showResults ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
                                     } ${darkMode
                                         ? 'bg-gray-800/95 border border-gray-700/50 shadow-black/20'
                                         : 'bg-white/95 border border-gray-200/50 shadow-gray-900/10'
                                     }`}>
-                                    {searchResults.length === 0 && searchTerm.length > 0 ? (
+                                    {Array.isArray(searchResults) && searchResults.length === 0 && searchTerm.length > 0 ? (
                                         <div className="px-6 py-4 text-center">
                                             <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                                                 No results found for "{stripHtmlTags(searchTerm)}"
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="py-2">
-                                            {searchResults.map((blog, index) => (
-                                                <div
-                                                    key={blog._id}
-                                                    className={`mx-2 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${darkMode
-                                                        ? 'hover:bg-blue-900/30 text-white'
-                                                        : 'hover:bg-blue-50 text-gray-900'
-                                                        } ${index !== searchResults.length - 1 ? 'mb-1' : ''}`}
-                                                    onMouseDown={() => handleResultClick(blog._id)}
-                                                >
-                                                    <div className={`font-semibold text-sm line-clamp-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                                                        {stripHtmlTags(blog.title)}
-                                                    </div>
-                                                    {blog.tags && (
-                                                        <div className="flex flex-wrap gap-1 mt-1">
-                                                            {blog.tags.slice(0, 3).map((tag, i) => (
-                                                                <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">
-                                                                    {stripHtmlTags(tag)}
-                                                                </span>
-                                                            ))}
+                                        Array.isArray(searchResults) && searchResults.length > 0 && (
+                                            <div className="py-2">
+                                                {searchResults.map((blog, index) => (
+                                                    <div
+                                                        key={blog._id}
+                                                        className={`mx-2 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${darkMode
+                                                            ? 'hover:bg-blue-900/30 text-white'
+                                                            : 'hover:bg-blue-50 text-gray-900'
+                                                            } ${index !== searchResults.length - 1 ? 'mb-1' : ''}`}
+                                                        onMouseDown={() => handleResultClick(blog._id)}
+                                                    >
+                                                        <div className={`font-semibold text-sm line-clamp-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                            {stripHtmlTags(blog.title)}
                                                         </div>
-                                                    )}
-                                                    <div className={`text-xs mt-1 line-clamp-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                                        {stripHtmlTags(blog.content)?.slice(0, 100)}...
+                                                        {blog.tags && (
+                                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                                {blog.tags.slice(0, 3).map((tag, i) => (
+                                                                    <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">
+                                                                        {stripHtmlTags(tag)}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        <div className={`text-xs mt-1 line-clamp-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                            {stripHtmlTags(blog.content)?.slice(0, 100)}...
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
+                                                ))}
+                                            </div>
+                                        )
                                     )}
                                 </div>
                             )}
                         </div>
 
-                        {/* Right side actions */}
                         <div className="flex items-center space-x-3">
                             <NotificationDropdown darkMode={darkMode} />
 
-                            {/* Smooth Dark mode toggle */}
                             <button
                                 onClick={handleThemeToggle}
                                 disabled={isToggling}
@@ -274,7 +279,6 @@ export default function Navbar({
                                 </div>
                             </button>
 
-                            {/* Floating Profile dropdown */}
                             <div className="relative" ref={dropdownRef}>
                                 <button
                                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
@@ -306,7 +310,6 @@ export default function Navbar({
                                     </div>
                                 </button>
 
-                                {/* Floating Profile Menu */}
                                 {profileDropdownOpen && (
                                     <div className={`absolute right-0 mt-2 w-56 rounded-2xl backdrop-blur-xl shadow-2xl z-50 transform transition-all duration-300 ease-out ${profileDropdownOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
                                         } ${darkMode

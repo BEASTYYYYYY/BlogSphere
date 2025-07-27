@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import BlogCard from '../components/BlogCard';
 import { useTheme } from '../App';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const CategoryPage = () => {
     const { name } = useParams();
     const { firebaseUser } = useAuth();
@@ -13,17 +15,30 @@ const CategoryPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const { darkMode } = useTheme();
+
     useEffect(() => {
         const fetchBlogs = async () => {
             try {
                 setLoading(true);
+                setError('');
+                setBlogs([]);
+
                 const token = await firebaseUser.getIdToken();
-                const res = await axios.get(`/api/categories/slug/${name}`, {
+                const res = await axios.get(`${API_BASE_URL}/categories/slug/${name}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                setBlogs(res.data);
+
+                if (Array.isArray(res.data)) {
+                    setBlogs(res.data);
+                } else {
+                    console.error("API returned non-array data for categories:", res.data);
+                    setError('Received unexpected data format from the server.');
+                    setBlogs([]);
+                }
             } catch (err) {
+                console.error('Failed to fetch blogs in this category:', err);
                 setError('Failed to fetch blogs in this category.');
+                setBlogs([]);
             } finally {
                 setLoading(false);
             }
@@ -33,10 +48,9 @@ const CategoryPage = () => {
 
     return (
         <div className={`min-h-screen relative transition-all duration-500 ${darkMode
-                ? 'bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800'
-                : 'bg-gradient-to-br from-blue-50 via-white to-indigo-50'
+            ? 'bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800'
+            : 'bg-gradient-to-br from-blue-50 via-white to-indigo-50'
             } `}>
-            {/* Floating Background Shapes */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className={`absolute top-20 left-10 w-32 h-32 rounded-full blur-2xl opacity-30 animate-pulse ${darkMode ? 'bg-blue-600' : 'bg-blue-200'
                     }`}></div>
@@ -46,12 +60,11 @@ const CategoryPage = () => {
                     }`} style={{ animationDuration: '4s' }}></div>
             </div>
 
-            {/* Header with Glass Effect */}
             <div className={`relative z-10 backdrop-blur-sm border-b transition-all duration-300 ${darkMode
-                    ? 'bg-gray-900/80 border-gray-700/50'
-                    : 'bg-white/80 border-gray-200/50'
+                ? 'bg-gray-900/80 border-gray-700/50'
+                : 'bg-white/80 border-gray-200/50'
                 }`}>
-               
+
             </div>
             <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
                 {loading && (
@@ -84,8 +97,8 @@ const CategoryPage = () => {
                 )}
                 {error && (
                     <div className={`max-w-lg mx-auto rounded-2xl p-8 text-center backdrop-blur-sm border ${darkMode
-                            ? 'bg-red-900/20 border-red-700/50 text-red-300'
-                            : 'bg-red-50/80 border-red-200/50 text-red-700'
+                        ? 'bg-red-900/20 border-red-700/50 text-red-300'
+                        : 'bg-red-50/80 border-red-200/50 text-red-700'
                         }`}>
                         <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${darkMode ? 'bg-red-800/30' : 'bg-red-100'
                             }`}>
@@ -97,11 +110,11 @@ const CategoryPage = () => {
                         <p>{error}</p>
                     </div>
                 )}
-                {blogs.length === 0 && !loading && !error && (
+                {(!loading && !error && Array.isArray(blogs) && blogs.length === 0) && (
                     <div className="text-center py-16">
                         <div className={`w-24 h-24 mx-auto mb-6 rounded-2xl flex items-center justify-center ${darkMode
-                                ? 'bg-gradient-to-br from-gray-700 to-gray-600'
-                                : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                            ? 'bg-gradient-to-br from-gray-700 to-gray-600'
+                            : 'bg-gradient-to-br from-gray-100 to-gray-200'
                             }`}>
                             <svg className={`w-12 h-12 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -116,16 +129,12 @@ const CategoryPage = () => {
                         </p>
                     </div>
                 )}
-                {blogs.length > 0 && (
+                {Array.isArray(blogs) && blogs.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                         {blogs.map((blog, index) => (
                             <div
                                 key={blog._id}
-                                // className={`group transform transition-all duration-500 hover:scale-[1.02] ${darkMode
-                                //         ? 'hover:shadow-2xl hover:shadow-blue-900/25'
-                                //         : 'hover:shadow-2xl hover:shadow-gray-900/15'
-                                //     }`}
-                               >
+                            >
                                 <BlogCard blog={blog} darkMode={darkMode} />
                             </div>
                         ))}
@@ -133,7 +142,6 @@ const CategoryPage = () => {
                 )}
             </div>
 
-            {/* CSS Animation */}
             <style jsx>{`
                 @keyframes fadeInUp {
                     from {
