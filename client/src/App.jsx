@@ -19,7 +19,7 @@ import Trending from "./pages/Trending";
 import Following from "./pages/Following";
 import CategoryPage from './pages/CategoryPage';
 import AdminRoutes from './routes/AdminRoutes';
-import TagPage from './pages/TagPage';
+import TagPage from "./pages/TagPage";
 import SettingsPage from "./pages/Settings";
 import LandingPage from './pages/LandingPage';
 import toast, { Toaster } from 'react-hot-toast';
@@ -31,46 +31,46 @@ export const useTheme = () => useContext(ThemeContext);
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function MaintenanceWrapper({ children }) {
-  const { mongoUser, firebaseUser } = useAuth();
+  const { mongoUser, firebaseUser, loading: authLoading } = useAuth(); // Destructure authLoading from useAuth
   const location = useLocation();
   const navigate = useNavigate();
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [loadingMaintenanceStatus, setLoadingMaintenanceStatus] = useState(true);
   const maintenanceToastIdRef = useRef(null);
 
-  // Function to fetch maintenance status
   const fetchMaintenanceStatus = async () => {
-    // No need to check firebaseUser here, the axios interceptor handles token
-    // and will reject if no user/token.
+    if (authLoading || firebaseUser === undefined) {
+      setLoadingMaintenanceStatus(false);
+      setIsMaintenanceMode(false);
+      return;
+    }
+
     try {
-      const res = await axios.get(`${API_BASE_URL}/admin/settings`); // Interceptor adds Authorization header
+      const res = await axios.get(`${API_BASE_URL}/admin/settings`);
       const { maintenanceMode } = res.data;
       setIsMaintenanceMode(maintenanceMode);
     } catch (error) {
       console.error("Failed to fetch maintenance status:", error);
-      // If it's a 401, it means the user isn't authenticated, so maintenance mode
-      // won't apply in the same way (or they can't access anyway).
-      // We assume not in maintenance for unauthenticated users or on error.
-      setIsMaintenanceMode(false);
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        console.warn("Maintenance status fetch got 401. User likely not authenticated or token expired.");
+        setIsMaintenanceMode(false);
+      } else {
+        setIsMaintenanceMode(false);
+      }
     } finally {
       setLoadingMaintenanceStatus(false);
     }
   };
 
   useEffect(() => {
-    // This useEffect will now run whenever firebaseUser changes,
-    // which is the right trigger for authenticated fetches.
-    if (firebaseUser !== undefined) { // Check if Firebase has initialized (could be null or a user)
+    if (!authLoading) {
       fetchMaintenanceStatus();
       const interval = setInterval(fetchMaintenanceStatus, 60000);
       return () => clearInterval(interval);
     } else {
-      // If firebaseUser is explicitly undefined (during very initial auth state) or null
-      // Set default states while waiting or if unauthenticated.
-      setLoadingMaintenanceStatus(false);
-      setIsMaintenanceMode(false);
+      setLoadingMaintenanceStatus(true);
     }
-  }, [firebaseUser]);
+  }, [authLoading]); // Depend on authLoading
 
   useEffect(() => {
     const isAdmin = mongoUser?.role === 'admin' || mongoUser?.role === 'superadmin';
@@ -163,7 +163,7 @@ function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
-  const { mongoUser } = useAuth(); // Get mongoUser to check admin role
+  const { mongoUser } = useAuth();
 
   const isAuthOrAdminPage = location.pathname.startsWith('/auth') || location.pathname.startsWith('/admin');
   const isLandingPage = location.pathname === '/';
@@ -232,10 +232,8 @@ function AppContent() {
           )}
 
           <main className={`flex-1 overflow-x-hidden overflow-y-auto ${!isAuthOrAdminPage && !isLandingPage ? 'pt-20' : ''}`}>
-            {/* Wrap routes with MaintenanceWrapper */}
             <MaintenanceWrapper>
               <Routes>
-                {/* Landing page - accessible to everyone */}
                 <Route path="/" element={<LandingRoute><LandingPage /></LandingRoute>} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/user" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -253,7 +251,6 @@ function AppContent() {
                 <Route path="/category/:name" element={<ProtectedRoute><CategoryPage /></ProtectedRoute>} />
                 <Route path="/tag/:name" element={<ProtectedRoute><TagPage /></ProtectedRoute>} />
 
-                {/* Auth route */}
                 <Route path="/auth" element={<PublicRoute><AuthPage /></PublicRoute>} />
                 <Route path="/admin/*" element={<ProtectedRoute><AdminRoutes /></ProtectedRoute>} />
                 <Route path="*" element={<ProtectedRoute><Navigate to="/user" replace /></ProtectedRoute>} />
@@ -269,7 +266,7 @@ function AppContent() {
           ></div>
         )}
       </div>
-      <Toaster position="top-center" reverseOrder={false} /> {/* Toast container */}
+      <Toaster position="top-center" reverseOrder={false} />
     </ThemeContext.Provider>
   );
 }
