@@ -31,7 +31,6 @@ export const AppSettingsProvider = ({ children }) => {
         }
 
         try {
-            // Fetch general settings
             const settingsResponse = await fetch("/api/admin/settings", {
                 headers: {
                     "Authorization": token ? `Bearer ${token}` : ""
@@ -40,21 +39,16 @@ export const AppSettingsProvider = ({ children }) => {
 
             if (settingsResponse.ok) {
                 const settingsData = await settingsResponse.json();
-                // Removed setSiteTitle
                 setMaintenanceMode(settingsData.maintenanceMode || false);
             } else {
                 console.error("Failed to fetch app settings:", settingsResponse.statusText);
-                // Continue with default settings if fetch fails
             }
-
-            // Determine admin status
             if (user) {
                 const userTokenResult = await user.getIdTokenResult();
                 if (userTokenResult.claims.role === 'admin' || userTokenResult.claims.role === 'superadmin') {
                     setIsAdmin(true);
                 } else {
-                    // Fallback if roles are not in custom claims (less efficient)
-                    const dbUserResponse = await fetch(`/api/users/me`, { // Using /api/users/me for current user
+                    const dbUserResponse = await fetch(`/api/users/me`, { 
                         headers: {
                             "Authorization": token ? `Bearer ${token}` : ""
                         }
@@ -67,26 +61,23 @@ export const AppSettingsProvider = ({ children }) => {
                     }
                 }
             } else {
-                setIsAdmin(false); // No user, not admin
+                setIsAdmin(false); 
             }
         } catch (error) {
             console.error("Error fetching app settings or user role:", error);
         } finally {
             setIsSettingsLoading(false);
         }
-    }, []); // useCallback dependency array is empty because user comes from onAuthStateChanged
+    }, []); 
 
     useEffect(() => {
-        // Listen for Firebase auth state changes to re-fetch settings and roles
         const unsubscribe = getAuth().onAuthStateChanged(user => {
-            fetchAndSetSettings(user); // Call the memoized function with the user object
+            fetchAndSetSettings(user); 
         });
 
-        return () => unsubscribe(); // Clean up the listener on unmount
-    }, [fetchAndSetSettings]); // Dependency on fetchAndSetSettings memoized function
+        return () => unsubscribe(); 
+    }, [fetchAndSetSettings]); 
 
-    // Provide a way for AdminSettings component to update the context directly
-    // Removed siteTitle from updateGlobalSettings
     const updateGlobalSettings = useCallback((newMaintenanceMode) => {
         setMaintenanceMode(newMaintenanceMode);
     }, []);
@@ -96,7 +87,7 @@ export const AppSettingsProvider = ({ children }) => {
         maintenanceMode,
         isSettingsLoading,
         isAdmin,
-        updateGlobalSettings // Expose updater function
+        updateGlobalSettings 
     };
 
     return (

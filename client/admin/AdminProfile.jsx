@@ -8,6 +8,7 @@ import {
     Mail, CalendarDays, Info, Copy, Shield,
 } from 'lucide-react';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; 
+
 export default function AdminProfile() {
     const { firebaseUser } = useAuth(); 
     const [adminUser, setAdminUser] = useState(null);
