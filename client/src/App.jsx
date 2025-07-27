@@ -33,32 +33,45 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 function MaintenanceWrapper({ children }) {
   const { mongoUser, firebaseUser } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [loadingMaintenanceStatus, setLoadingMaintenanceStatus] = useState(true);
-  const maintenanceToastIdRef = useRef(null); 
+  const maintenanceToastIdRef = useRef(null);
 
   // Function to fetch maintenance status
   const fetchMaintenanceStatus = async () => {
+    // No need to check firebaseUser here, the axios interceptor handles token
+    // and will reject if no user/token.
     try {
-      const token = firebaseUser ? await firebaseUser.getIdToken() : null;
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await axios.get(`${API_BASE_URL}/admin/settings`, { headers });
+      const res = await axios.get(`${API_BASE_URL}/admin/settings`); // Interceptor adds Authorization header
       const { maintenanceMode } = res.data;
       setIsMaintenanceMode(maintenanceMode);
     } catch (error) {
       console.error("Failed to fetch maintenance status:", error);
-      setIsMaintenanceMode(false); // Assume not in maintenance if fetch fails
+      // If it's a 401, it means the user isn't authenticated, so maintenance mode
+      // won't apply in the same way (or they can't access anyway).
+      // We assume not in maintenance for unauthenticated users or on error.
+      setIsMaintenanceMode(false);
     } finally {
       setLoadingMaintenanceStatus(false);
     }
   };
 
   useEffect(() => {
-    fetchMaintenanceStatus();
-    const interval = setInterval(fetchMaintenanceStatus, 60000); 
-    return () => clearInterval(interval);
-  }, [firebaseUser]); 
+    // This useEffect will now run whenever firebaseUser changes,
+    // which is the right trigger for authenticated fetches.
+    if (firebaseUser !== undefined) { // Check if Firebase has initialized (could be null or a user)
+      fetchMaintenanceStatus();
+      const interval = setInterval(fetchMaintenanceStatus, 60000);
+      return () => clearInterval(interval);
+    } else {
+      // If firebaseUser is explicitly undefined (during very initial auth state) or null
+      // Set default states while waiting or if unauthenticated.
+      setLoadingMaintenanceStatus(false);
+      setIsMaintenanceMode(false);
+    }
+  }, [firebaseUser]);
+
   useEffect(() => {
     const isAdmin = mongoUser?.role === 'admin' || mongoUser?.role === 'superadmin';
     const isAuthPage = location.pathname.startsWith('/auth');
@@ -72,39 +85,38 @@ function MaintenanceWrapper({ children }) {
         maintenanceToastIdRef.current = toast.error(
           "Site is currently undergoing maintenance. Please check back later!",
           {
-            duration: Infinity, 
-            id: 'maintenance-toast', 
+            duration: Infinity,
+            id: 'maintenance-toast',
           }
         );
       }
     } else {
-      // If maintenance mode is off, or user is admin, or on an allowed page, dismiss toast
       if (maintenanceToastIdRef.current) {
         toast.dismiss(maintenanceToastIdRef.current);
         maintenanceToastIdRef.current = null;
       }
     }
     if (isMaintenanceMode && !isAdmin && isLandingPage) {
-      if (!maintenanceToastIdRef.current || toast.current(maintenanceToastIdRef.current)?.message !== "Site is currently undergoing maintenance. Please check back later!") {
+      if (!maintenanceToastIdRef.current || toast.current(maintenanceToastIdRef.current)?.message !== "Site is currently undergoing maintenance. Only admins can access other pages.") {
         if (maintenanceToastIdRef.current) {
           toast.dismiss(maintenanceToastIdRef.current);
         }
         maintenanceToastIdRef.current = toast.error(
-          "Site is currently undergoing maintenance. Please check back later!",
+          "Site is currently undergoing maintenance. Only admins can access other pages.",
           {
             duration: Infinity,
-            id: 'maintenance-landing-toast', 
+            id: 'maintenance-landing-toast',
           }
         );
       }
-    } else { 
+    } else {
       if (maintenanceToastIdRef.current && toast.current(maintenanceToastIdRef.current)?.id === 'maintenance-landing-toast') {
         toast.dismiss(maintenanceToastIdRef.current);
         maintenanceToastIdRef.current = null;
       }
     }
 
-  }, [isMaintenanceMode, mongoUser, location.pathname, navigate]); 
+  }, [isMaintenanceMode, mongoUser, location.pathname, navigate]);
 
   if (loadingMaintenanceStatus) {
     return (
