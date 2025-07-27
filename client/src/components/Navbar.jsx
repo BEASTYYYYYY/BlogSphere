@@ -10,41 +10,41 @@ import NotificationDropdown from './Notification';
 
 const getBreadcrumbs = (pathname) => {
     const routes = {
-        '/': [{ label: 'Dashboard', to: '/' }],
-        '/write': [{ label: 'Dashboard', to: '/' }, { label: 'Write', to: '/write' }],
-        '/my-blogs': [{ label: 'Dashboard', to: '/' }, { label: 'My Blogs', to: '/my-blogs' }],
-        '/liked': [{ label: 'Dashboard', to: '/' }, { label: 'Liked Posts', to: '/liked' }],
-        '/bookmarks': [{ label: 'Dashboard', to: '/' }, { label: 'Bookmarks', to: '/bookmarks' }],
-        '/trending': [{ label: 'Dashboard', to: '/' }, { label: 'Trending', to: '/trending' }],
-        '/following': [{ label: 'Dashboard', to: '/' }, { label: 'Following', to: '/following' }],
-        '/profile': [{ label: 'Dashboard', to: '/' }, { label: 'Profile', to: '/profile' }],
-        '/settings': [{ label: 'Dashboard', to: '/' }, { label: 'Settings', to: '/settings' }],
-        '/admin': [{ label: 'Dashboard', to: '/' }, { label: 'Admin Panel', to: '/admin' }],
+        '/user': [{ label: 'Dashboard', to: '/user' }],
+        '/write': [{ label: 'Dashboard', to: '/user' }, { label: 'Write', to: '/write' }],
+        '/my-blogs': [{ label: 'Dashboard', to: '/user' }, { label: 'My Blogs', to: '/my-blogs' }],
+        '/liked': [{ label: 'Dashboard', to: '/user' }, { label: 'Liked Posts', to: '/liked' }],
+        '/bookmarks': [{ label: 'Dashboard', to: '/user' }, { label: 'Bookmarks', to: '/bookmarks' }],
+        '/trending': [{ label: 'Dashboard', to: '/user' }, { label: 'Trending', to: '/trending' }],
+        '/following': [{ label: 'Dashboard', to: '/user' }, { label: 'Following', to: '/following' }],
+        '/profile': [{ label: 'Dashboard', to: '/user' }, { label: 'Profile', to: '/profile' }],
+        '/settings': [{ label: 'Dashboard', to: '/user' }, { label: 'Settings', to: '/settings' }],
+        '/admin': [{ label: 'Dashboard', to: '/user' }, { label: 'Admin Panel', to: '/admin' }],
     };
 
     if (pathname.startsWith('/blog/')) {
         return [
-            { label: 'Dashboard', to: '/' },
+            { label: 'Dashboard', to: '/user' },
             { label: 'Blog Details' }
         ];
     }
     if (pathname.startsWith('/category/')) {
         const category = pathname.split('/')[2];
         return [
-            { label: 'Dashboard', to: '/' },
+            { label: 'Dashboard', to: '/user' },
             { label: 'Categories', to: '/categories' },
             { label: category.charAt(0).toUpperCase() + category.slice(1) }
         ];
     }
     if (pathname.startsWith('/edit-blog/')) {
         return [
-            { label: 'Dashboard', to: '/' },
+            { label: 'Dashboard', to: '/user' },
             { label: 'My Blogs', to: '/my-blogs' },
             { label: 'Edit Blog' }
         ];
     }
 
-    return routes[pathname] || [{ label: 'Dashboard', to: '/' }];
+    return routes[pathname] || [{ label: 'Dashboard', to: '/user' }];
 };
 
 export default function Navbar({

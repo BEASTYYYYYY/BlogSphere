@@ -2,7 +2,10 @@
 import User from '../models/User.js';
 import Blog from '../models/Blog.js';
 import Setting from '../models/Setting.js';
+import Notification from '../models/Notification.js'; // Import Notification model
+import UserSettings from '../models/UserSettings.js'; // Import UserSettings model
 import transporter from '../config/emailTransporter.js';
+
 // GET /api/admin/users
 export const getAllUsers = async (req, res) => {
     try {
@@ -88,16 +91,56 @@ export const changeUserRole = async (req, res) => {
 // DELETE /api/admin/user/:id
 export const deleteUser = async (req, res) => {
     try {
-        const user = await User.findByIdAndDelete(req.params.id);
-        if (!user) return res.status(404).json({ error: 'User not found' });
-        await Blog.deleteMany({ authorId: user._id });
-        res.json({ message: 'User and their blogs deleted' });
+        const userId = req.params.id;
+        // Find the user to ensure it exists before proceeding
+        const userToDelete = await User.findById(userId);
+        if (!userToDelete) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // 1. Delete all blogs created by the user
+        await Blog.deleteMany({ authorId: userId });
+
+        // 2. Remove user's comments and likes from all other blogs
+        await Blog.updateMany(
+            {}, // Affect all blog documents
+            {
+                $pull: {
+                    comments: { userId: userId }, // Remove comments by this user
+                    likes: userId, // Remove likes by this user
+                    viewers: userId, // Remove user from viewers array
+                    bookmarks: userId // Remove user from bookmarks array
+                }
+            }
+        );
+
+        // 3. Delete notifications where the user is sender or recipient
+        await Notification.deleteMany({
+            $or: [{ sender: userId }, { recipient: userId }]
+        });
+
+        // 4. Remove user from followers and following lists of all other users
+        await User.updateMany({}, {
+            $pull: {
+                followers: userId,
+                following: userId
+            }
+        });
+
+        // 5. Delete the user's settings document
+        await UserSettings.deleteOne({ user: userId });
+
+        // 6. Finally, delete the user document itself
+        await User.findByIdAndDelete(userId);
+
+        res.json({ success: true, message: "User and all associated data deleted." });
     } catch (err) {
+        console.error('Error deleting user:', err);
         res.status(500).json({ error: 'Failed to delete user' });
     }
 };
 
-// DELETE /api/admin/blogs/:id  <--- New Controller Function
+// DELETE /api/admin/blogs/:id
 export const deleteBlog = async (req, res) => {
     try {
         const blog = await Blog.findByIdAndDelete(req.params.id);
@@ -143,14 +186,14 @@ export const emailBroadcast = async (req, res) => {
             return res.status(400).json({ error: 'Invalid recipient type.' });
         }
 
-        userEmails = recipients.map(user => user.email).filter(email => email); 
+        userEmails = recipients.map(user => user.email).filter(email => email);
 
         if (userEmails.length === 0) {
             return res.status(404).json({ message: 'No recipients found for the selected type.' });
         }
         const mailOptions = {
             from: process.env.EMAIL_USER,
-            bcc: userEmails.join(', '), 
+            bcc: userEmails.join(', '),
             subject: subject,
             html: `
                 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -178,7 +221,7 @@ export const getSettings = async (req, res) => {
 
         res.json({
             siteTitle: siteTitleSetting,
-            maintenanceMode: maintenanceModeSetting || false 
+            maintenanceMode: maintenanceModeSetting || false
         });
     } catch (err) {
         console.error('Error fetching settings:', err);

@@ -1,24 +1,17 @@
 // controllers/notificationController.js
 import mongoose from 'mongoose';
 import Notification from '../models/Notification.js';
-import User from '../models/User.js'; // Assuming User model is needed elsewhere in controller
-import Blog from '../models/Blog.js';   // Assuming Blog model is needed elsewhere in controller
-import UserSettings from '../models/UserSettings.js'; // Ensure UserSettings is correctly imported
+import UserSettings from '../models/UserSettings.js';
 
 const { isValidObjectId, Types } = mongoose;
 
 // Core helper: Create a notification
 export const createNotification = async ({ recipient, sender, type, blog }) => {
-    // FIX 1: Removed the global self-notification check from here.
-    // This check was preventing ANY notification if sender and recipient were the same,
-    // or if sender was undefined, blocking legitimate notifications.
-    // Self-notification prevention will now be explicitly handled in specific 'inject' functions.
     if (!recipient || !type) {
         console.warn('Notification creation failed: Missing recipient or type.');
         return;
     }
 
-    // Validate ObjectIds
     if (!isValidObjectId(recipient)) {
         console.warn('Invalid recipient ID for notification:', recipient);
         return;
@@ -37,12 +30,11 @@ export const createNotification = async ({ recipient, sender, type, blog }) => {
         sender: sender ? new Types.ObjectId(sender) : undefined,
         type,
         blog: blog ? new Types.ObjectId(blog) : undefined,
-        isRead: false // Ensure new notifications are explicitly set as unread by default
+        isRead: false
     });
 
     try {
         await newNotification.save();
-        // console.log(`Notification saved to DB: Type=${type}, Recipient=${recipient}, Sender=${sender}, Blog=${blog}`); // For debugging
     } catch (error) {
         console.error("Error saving new notification to DB:", error);
     }
@@ -50,9 +42,7 @@ export const createNotification = async ({ recipient, sender, type, blog }) => {
 
 // Inject: for blog comment
 export const injectCommentNotification = async (recipientId, senderId, blogId) => {
-    // FIX: Explicitly prevent self-notification for comments here.
     if (recipientId.toString() === senderId.toString()) {
-        // console.log('Prevented self-comment notification (sender == recipient).');
         return;
     }
     await createNotification({
@@ -65,16 +55,12 @@ export const injectCommentNotification = async (recipientId, senderId, blogId) =
 
 // Inject: for blog like
 export const injectLikeNotification = async (recipientId, senderId, blogId) => {
-    // FIX: Explicitly prevent self-notification for likes here.
     if (recipientId.toString() === senderId.toString()) {
-        // console.log('Prevented self-like notification (sender == recipient).');
         return;
     }
     try {
         const settings = await UserSettings.findOne({ user: recipientId });
-        // FIX: Check for explicit 'false' to respect user's setting, otherwise allow by default
         if (settings && settings.showFollowerActivity === false) {
-            // console.log(`Prevented like notification due to recipient settings: ${recipientId}`);
             return;
         }
 
@@ -91,16 +77,12 @@ export const injectLikeNotification = async (recipientId, senderId, blogId) => {
 
 // Inject: for follow
 export const injectFollowNotification = async (recipientId, senderId) => {
-    // FIX: Explicitly prevent self-notification for follows here.
     if (recipientId.toString() === senderId.toString()) {
-        // console.log('Prevented self-follow notification (sender == recipient).');
         return;
     }
     try {
         const settings = await UserSettings.findOne({ user: recipientId });
-        // FIX: Check for explicit 'false' to respect user's setting, otherwise allow by default
         if (settings && settings.showFollowerActivity === false) {
-            // console.log(`Prevented follow notification due to recipient settings: ${recipientId}`);
             return;
         }
 
@@ -129,21 +111,18 @@ export const getNotifications = async (req, res) => {
     }
 };
 
-// FIX 3: Mark notification as read (UPDATE isRead to true, DO NOT DELETE)
+// Existing markAsRead (updates isRead status) - No change requested for this function
 export const markAsRead = async (req, res) => {
     try {
         const notification = await Notification.findOneAndUpdate(
-            { _id: req.params.id, recipient: req.user._id }, // Ensure user owns the notification
-            { isRead: true }, // Set isRead to true
-            { new: true } // Return the updated document
+            { _id: req.params.id, recipient: req.user._id },
+            { isRead: true },
+            { new: true }
         );
 
         if (!notification) {
             return res.status(404).json({ error: 'Notification not found or not authorized' });
         }
-
-        // We only send success: true for the frontend to optimistically remove it.
-        // The frontend doesn't necessarily need the full updated notification object here.
         res.json({ success: true, notificationId: notification._id });
     } catch (err) {
         console.error('markAsRead error:', err);
@@ -151,17 +130,45 @@ export const markAsRead = async (req, res) => {
     }
 };
 
-// FIX 4: Mark all notifications as read (UPDATE isRead to true, DO NOT DELETE)
+// Existing markAllAsRead (updates isRead status) - No change requested for this function
 export const markAllAsRead = async (req, res) => {
     try {
-        // Find all notifications for the recipient and set isRead to true
         await Notification.updateMany(
-            { recipient: req.user._id, isRead: false }, // Only update unread ones
+            { recipient: req.user._id, isRead: false },
             { isRead: true }
         );
         res.json({ success: true });
     } catch (err) {
         console.error('markAllAsRead error:', err);
         res.status(500).json({ error: 'Failed to mark all notifications as read' });
+    }
+};
+
+// NEW: Delete a specific notification
+export const deleteNotification = async (req, res) => {
+    try {
+        const result = await Notification.deleteOne({
+            _id: req.params.id,
+            recipient: req.user._id // Ensure the user owns the notification
+        });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: 'Notification not found or not authorized' });
+        }
+        res.json({ success: true, message: 'Notification deleted successfully' });
+    } catch (err) {
+        console.error('deleteNotification error:', err);
+        res.status(500).json({ error: 'Failed to delete notification' });
+    }
+};
+
+// NEW: Delete all notifications for the current user
+export const deleteAllNotifications = async (req, res) => {
+    try {
+        await Notification.deleteMany({ recipient: req.user._id });
+        res.json({ success: true, message: 'All notifications deleted successfully' });
+    } catch (err) {
+        console.error('deleteAllNotifications error:', err);
+        res.status(500).json({ error: 'Failed to delete all notifications' });
     }
 };

@@ -1,3 +1,4 @@
+// server.js
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -13,7 +14,7 @@ import './config/emailTransporter.js';
 import { connectDB } from './config/db.js';
 import { initializeFirebaseAdmin } from './config/firebaseAdmin.js';
 
-import { checkMaintenanceMode } from './middleware/maintenanceMiddleware.js';
+// REMOVE: import { checkMaintenanceMode } from './middleware/maintenanceMiddleware.js';
 import { verifyFirebaseToken } from './middleware/authMiddleware.js';
 import scheduleRoutes from './routes/scheduleRoutes.js';
 import settingsRoutes from './routes/settingRoutes.js';
@@ -28,7 +29,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use(verifyFirebaseToken);
-app.use(checkMaintenanceMode);
+// REMOVE: app.use(checkMaintenanceMode); // Remove this line
 
 // API Routes
 app.use('/api/auth', authRoutes);

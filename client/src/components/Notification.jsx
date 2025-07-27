@@ -1,6 +1,6 @@
 // Notification.jsx
 import React, { useEffect, useState, useRef } from 'react';
-import { Bell, UserPlus, Heart, MessageCircle, XCircle } from 'lucide-react';
+import { Bell, UserPlus, Heart, MessageCircle, XCircle, Trash2 } from 'lucide-react'; // Import Trash2 icon
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +20,7 @@ const NotificationDropdown = () => {
 
     const fetchNotifications = async () => {
         if (!firebaseUser) {
-            setNotifications([]); // Clear notifications if not logged in
+            setNotifications([]);
             return;
         }
         try {
@@ -31,10 +31,10 @@ const NotificationDropdown = () => {
             setNotifications(res.data);
         } catch (err) {
             console.error('Failed to fetch notifications:', err);
-            // toast.error("Failed to load notifications."); // Removed for less intrusive experience
         }
     };
 
+    // Keep existing markAsRead function if you want to retain the 'mark as read' functionality
     const markAsRead = async (id) => {
         try {
             const token = await firebaseUser.getIdToken();
@@ -42,7 +42,8 @@ const NotificationDropdown = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.data.success) {
-                setNotifications(prev => prev.filter(n => n._id !== id));
+                // Update the local state to reflect the change
+                setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
                 toast.success("Notification marked as read!");
             }
         } catch (err) {
@@ -51,6 +52,7 @@ const NotificationDropdown = () => {
         }
     };
 
+    // Keep existing handleMarkAllAsRead if you want to retain the 'mark all as read' functionality
     const handleMarkAllAsRead = async () => {
         try {
             const token = await firebaseUser.getIdToken();
@@ -58,13 +60,51 @@ const NotificationDropdown = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.data.success) {
-                setNotifications([]);
+                // Update all notifications in state to isRead: true
+                setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
                 toast.success("All notifications marked as read!");
                 setOpen(false);
             }
         } catch (err) {
             console.error("Failed to mark all as read:", err);
             toast.error("Failed to update notifications.");
+        }
+    };
+
+    // NEW: Function to delete a single notification
+    const handleDeleteNotification = async (id) => {
+        try {
+            const token = await firebaseUser.getIdToken();
+            const res = await axios.delete(`${API_BASE_URL}/notifications/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.data.success) {
+                setNotifications(prev => prev.filter(n => n._id !== id));
+                toast.success("Notification deleted permanently!");
+            }
+        } catch (err) {
+            console.error('Failed to delete notification:', err);
+            toast.error("Failed to delete notification.");
+        }
+    };
+
+    // NEW: Function to delete all notifications
+    const handleDeleteAllNotifications = async () => {
+        if (window.confirm("Are you sure you want to delete all notifications? This action cannot be undone.")) {
+            try {
+                const token = await firebaseUser.getIdToken();
+                const res = await axios.delete(`${API_BASE_URL}/notifications`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (res.data.success) {
+                    setNotifications([]); // Clear all notifications from state
+                    toast.success("All notifications deleted permanently!");
+                    setOpen(false); // Close the dropdown
+                }
+            } catch (err) {
+                console.error("Failed to delete all notifications:", err);
+                toast.error("Failed to delete all notifications.");
+            }
         }
     };
 
@@ -94,6 +134,7 @@ const NotificationDropdown = () => {
             });
 
             if (res.data.success) {
+                // Remove the specific follow notification if follow back is successful
                 setNotifications(prev => prev.filter(n => !(n.sender?._id === senderId && n.type === 'follow')));
                 toast.success("Followed back successfully!");
                 refreshMongoUser();
@@ -143,22 +184,20 @@ const NotificationDropdown = () => {
         }
     };
 
-    // FIX: This useEffect now correctly handles initial fetch and periodic polling.
-    // It depends on firebaseUser to ensure we have a token for fetching.
     useEffect(() => {
         let interval;
         if (firebaseUser) {
-            fetchNotifications(); // Initial fetch when user logs in
-            interval = setInterval(fetchNotifications, 60000); // Periodic polling
+            fetchNotifications();
+            interval = setInterval(fetchNotifications, 60000);
         } else {
-            setNotifications([]); // Clear notifications if user logs out
-            if (interval) clearInterval(interval); // Clear any existing interval
+            setNotifications([]);
+            if (interval) clearInterval(interval);
         }
 
         return () => {
-            if (interval) clearInterval(interval); // Cleanup on component unmount or firebaseUser change
+            if (interval) clearInterval(interval);
         };
-    }, [firebaseUser]); // Dependency is firebaseUser
+    }, [firebaseUser]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -178,7 +217,6 @@ const NotificationDropdown = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [open]);
-
 
     return (
         <div className="relative">
@@ -202,12 +240,22 @@ const NotificationDropdown = () => {
                     <div className="flex justify-between items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                         <span className="text-lg font-bold">Notifications</span>
                         {notifications.length > 0 && (
-                            <button
-                                onClick={handleMarkAllAsRead}
-                                className="px-3 py-1 text-sm rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
-                            >
-                                Mark all as read
-                            </button>
+                            <div className="flex gap-2"> {/* Group buttons */}
+                                {/* Existing Mark all as read button */}
+                                <button
+                                    onClick={handleMarkAllAsRead}
+                                    className="px-3 py-1 text-sm rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
+                                >
+                                    Mark all as read
+                                </button>
+                                {/* NEW: Delete all button */}
+                                <button
+                                    onClick={handleDeleteAllNotifications}
+                                    className="px-3 py-1 text-sm rounded-lg bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors"
+                                >
+                                    Delete All
+                                </button>
+                            </div>
                         )}
                     </div>
                     {notifications.length === 0 ? (
@@ -257,12 +305,22 @@ const NotificationDropdown = () => {
                                             Wanna see?
                                         </button>
                                     )}
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); markAsRead(n._id); }}
-                                        className="text-xs mt-2 self-end px-2 py-0.5 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                                    >
-                                        Mark as read
-                                    </button>
+                                    <div className="flex justify-end gap-2 mt-2">
+                                        {/* Existing Mark as read button */}
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); markAsRead(n._id); }}
+                                            className="text-xs px-2 py-0.5 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                                        >
+                                            Mark as read
+                                        </button>
+                                        {/* NEW: Delete this button */}
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleDeleteNotification(n._id); }}
+                                            className="text-xs px-2 py-0.5 rounded-md text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200 transition-colors flex items-center gap-1"
+                                        >
+                                            <Trash2 className="w-3 h-3" /> Delete
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>

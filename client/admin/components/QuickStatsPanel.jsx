@@ -12,17 +12,17 @@ const QuickStatsPanel = ({ scheduleItems, selectedDate, eventsByDate }) => {
             <div className="space-y-3">
                 <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">Total Items</span>
-                    <span className="font-bold text-blue-600">{scheduleItems.length}</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400">{scheduleItems.length}</span>
                 </div>
                 <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">Today's Items</span>
-                    <span className="font-bold text-green-600">
+                    <span className="font-bold text-green-600 dark:text-green-400">
                         {todayEventsCount}
                     </span>
                 </div>
                 <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">Selected Date</span>
-                    <span className="font-bold text-purple-600">{selectedDateEventsCount}</span>
+                    <span className="font-bold text-purple-600 dark:text-purple-400">{selectedDateEventsCount}</span>
                 </div>
             </div>
         </div>

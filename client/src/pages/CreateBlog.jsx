@@ -105,7 +105,7 @@ const CreateBlog = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             refreshCategories();
-            navigate('/');
+            navigate('/user');
         } catch (err) {
             console.error("Error creating blog:", err.response?.data || err.message);
             alert("Failed to create blog. Please try again.");
@@ -160,7 +160,7 @@ const CreateBlog = () => {
             ? 'bg-gray-900'
             : 'bg-gray-50'
             }`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-13">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
                         <form onSubmit={(e) => { e.preventDefault(); submitBlog('published'); }} className="space-y-6">
@@ -232,9 +232,7 @@ const CreateBlog = () => {
 
                     {/* Sidebar */}
                     <div className="lg:col-span-1">
-                        <div className="sticky top-24 space-y-6">
-
-                            {/* Publish Settings Card */}
+                        <div className="sticky space-y-6">
                             <div className={`rounded-lg border ${darkMode
                                 ? 'bg-gray-800 border-gray-700'
                                 : 'bg-white border-gray-200 shadow-sm'

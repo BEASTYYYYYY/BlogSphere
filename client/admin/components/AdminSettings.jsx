@@ -153,26 +153,26 @@ export default function AdminSettings() {
         return (
             <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <p className="ml-4 text-lg text-gray-700">Loading settings...</p>
+                <p className="ml-4 text-lg text-gray-700 dark:text-gray-300">Loading settings...</p>
             </div>
         );
     }
 
     return (
-        <div className="container mx-auto p-6 bg-white rounded-lg shadow-xl">
-            <h1 className="text-3xl font-bold text-gray-800 mb-8 border-b pb-4">Admin Settings</h1>
+        <div className="container mx-auto p-6 bg-white dark:bg-gray-900 rounded-lg shadow-xl">
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-8 border-b pb-4 dark:border-gray-700">Admin Settings</h1>
 
             {/* General Settings Section */}
             <section className="mb-10">
-                <h2 className="text-2xl font-semibold text-gray-700 mb-4">General Settings</h2>
+                <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-4">General Settings</h2>
                 {settingsFeedback.message && (
-                    <div className={`mb-4 p-3 rounded-md text-sm ${settingsFeedback.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                    <div className={`mb-4 p-3 rounded-md text-sm ${settingsFeedback.type === "success" ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300" : "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300"}`}>
                         {settingsFeedback.message}
                     </div>
                 )}
                 {/* Removed Site Title input field */}
-                <div className="flex items-center justify-between mt-4 bg-gray-50 p-4 rounded-md shadow-sm">
-                    <span className="block text-gray-700 font-medium">Maintenance Mode:</span>
+                <div className="flex items-center justify-between mt-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-md shadow-sm">
+                    <span className="block text-gray-700 dark:text-gray-300 font-medium">Maintenance Mode:</span>
                     <label className="relative inline-flex items-center cursor-pointer">
                         <input
                             type="checkbox"
@@ -181,11 +181,11 @@ export default function AdminSettings() {
                             onChange={() => setMaintenanceMode(!maintenanceMode)}
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                        <span className="ml-3 text-sm font-medium text-gray-900">{maintenanceMode ? "On" : "Off"}</span>
+                        <span className="ml-3 text-sm font-medium text-gray-900 dark:text-white">{maintenanceMode ? "On" : "Off"}</span>
                     </label>
                 </div>
                 <button
-                    className={`mt-6 px-6 py-2 rounded-md text-white font-semibold transition duration-300 ${savingSettings ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'}`}
+                    className={`mt-6 px-6 py-2 rounded-md text-white font-semibold transition duration-300 ${savingSettings ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-700 dark:hover:bg-blue-800'}`}
                     onClick={handleSaveGeneralSettings}
                     disabled={savingSettings}
                 >
@@ -194,41 +194,41 @@ export default function AdminSettings() {
             </section>
 
             {/* Broadcast Email Section */}
-            <section className="mt-10 pt-6 border-t border-gray-200">
-                <h2 className="text-2xl font-semibold text-gray-700 mb-6">Broadcast Email</h2>
+            <section className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-6">Broadcast Email</h2>
 
                 {/* Optional: Email Templates */}
-                <div className="mb-6 bg-yellow-50 p-4 rounded-md border border-yellow-200">
-                    <h3 className="text-lg font-medium text-yellow-800 mb-3">Quick Templates (Optional)</h3>
+                <div className="mb-6 bg-yellow-50 p-4 rounded-md border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700">
+                    <h3 className="text-lg font-medium text-yellow-800 dark:text-yellow-300 mb-3">Quick Templates (Optional)</h3>
                     <div className="flex flex-wrap gap-3">
                         <button
                             onClick={() => applyTemplate('maintenance')}
-                            className="px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-md hover:bg-yellow-700 transition duration-150 ease-in-out"
+                            className="px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-md hover:bg-yellow-700 transition duration-150 ease-in-out dark:bg-yellow-700 dark:hover:bg-yellow-800"
                         >
                             Maintenance Email
                         </button>
                         <button
                             onClick={() => applyTemplate('newFeature')}
-                            className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition duration-150 ease-in-out"
+                            className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition duration-150 ease-in-out dark:bg-purple-700 dark:hover:bg-purple-800"
                         >
                             New Feature Announcement
                         </button>
                         <button
                             onClick={() => applyTemplate('policyUpdate')}
-                            className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-md hover:bg-teal-700 transition duration-150 ease-in-out"
+                            className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-md hover:bg-teal-700 transition duration-150 ease-in-out dark:bg-teal-700 dark:hover:bg-teal-800"
                         >
                             Policy Update
                         </button>
                     </div>
-                    <p className="text-sm text-yellow-700 mt-3">Clicking a template button will pre-fill the subject and message fields below.</p>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-200 mt-3">Clicking a template button will pre-fill the subject and message fields below.</p>
                 </div>
 
                 <div className="mb-4">
-                    <label htmlFor="broadcastSubject" className="block text-sm font-medium text-gray-700 mb-2">Subject:</label>
+                    <label htmlFor="broadcastSubject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subject:</label>
                     <input
                         type="text"
                         id="broadcastSubject"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 p-3"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/50"
                         value={broadcastSubject}
                         onChange={(e) => setBroadcastSubject(e.target.value)}
                         placeholder="Enter email subject"
@@ -236,11 +236,11 @@ export default function AdminSettings() {
                 </div>
 
                 <div className="mb-4">
-                    <label htmlFor="broadcastMessage" className="block text-sm font-medium text-gray-700 mb-2">Message:</label>
+                    <label htmlFor="broadcastMessage" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message:</label>
                     <textarea
                         id="broadcastMessage"
                         rows="8"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 p-3"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/50"
                         value={broadcastMessage}
                         onChange={(e) => setBroadcastMessage(e.target.value)}
                         placeholder="Compose your broadcast email message here..."
@@ -248,54 +248,54 @@ export default function AdminSettings() {
                 </div>
 
                 <div className="mb-6">
-                    <span className="block text-sm font-medium text-gray-700 mb-2">Send to:</span>
+                    <span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Send to:</span>
                     <div className="flex space-x-4">
                         <label className="inline-flex items-center">
                             <input
                                 type="radio"
-                                className="form-radio text-blue-600 h-4 w-4"
+                                className="form-radio text-blue-600 h-4 w-4 dark:text-blue-400"
                                 name="recipientType"
                                 value="all"
                                 checked={recipientType === "all"}
                                 onChange={(e) => setRecipientType(e.target.value)}
                             />
-                            <span className="ml-2 text-gray-900">All Users (including Admins)</span>
+                            <span className="ml-2 text-gray-900 dark:text-white">All Users (including Admins)</span>
                         </label>
                         <label className="inline-flex items-center">
                             <input
                                 type="radio"
-                                className="form-radio text-blue-600 h-4 w-4"
+                                className="form-radio text-blue-600 h-4 w-4 dark:text-blue-400"
                                 name="recipientType"
                                 value="users"
                                 checked={recipientType === "users"}
                                 onChange={(e) => setRecipientType(e.target.value)}
                             />
-                            <span className="ml-2 text-gray-900">Only Regular Users</span>
+                            <span className="ml-2 text-gray-900 dark:text-white">Only Regular Users</span>
                         </label>
                         <label className="inline-flex items-center">
                             <input
                                 type="radio"
-                                className="form-radio text-blue-600 h-4 w-4"
+                                className="form-radio text-blue-600 h-4 w-4 dark:text-blue-400"
                                 name="recipientType"
                                 value="admins"
                                 checked={recipientType === "admins"}
                                 onChange={(e) => setRecipientType(e.target.value)}
                             />
-                            <span className="ml-2 text-gray-900">Only Admins</span>
+                            <span className="ml-2 text-gray-900 dark:text-white">Only Admins</span>
                         </label>
                     </div>
                 </div>
 
                 <button
                     onClick={handleSendBroadcastEmail}
-                    className={`w-full px-6 py-3 rounded-md text-white font-semibold transition duration-300 ${sendingEmail ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+                    className={`w-full px-6 py-3 rounded-md text-white font-semibold transition duration-300 ${sendingEmail ? 'bg-blue-400 cursor-not-allowed dark:bg-blue-600' : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800'}`}
                     disabled={sendingEmail}
                 >
                     {sendingEmail ? "Sending..." : "Send Broadcast Email"}
                 </button>
 
                 {emailFeedback.message && (
-                    <div className={`mt-4 p-3 rounded-md text-sm ${emailFeedback.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                    <div className={`mt-4 p-3 rounded-md text-sm ${emailFeedback.type === "success" ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300" : "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300"}`}>
                         {emailFeedback.message}
                     </div>
                 )}

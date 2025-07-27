@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Search, Bell, User, Menu, ChevronDown, Sun, Moon } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
-import NotificationBell from './utility/NotificationBell';
 
 const AdminNavbar = ({ darkMode, setDarkMode, sidebarOpen, setSidebarOpen }) => {
     const [profileOpen, setProfileOpen] = useState(false);
@@ -70,7 +69,6 @@ const AdminNavbar = ({ darkMode, setDarkMode, sidebarOpen, setSidebarOpen }) => 
                                 <Moon className="w-5 h-5 text-gray-600" />
                             )}
                         </button>
-                        <NotificationBell />
                         <div className="relative">
                             <button
                                 onClick={() => setProfileOpen(!profileOpen)}

@@ -6,6 +6,7 @@ import AdminSettings from "../../admin/components/AdminSettings"; // Assuming Ad
 import RecentUploadsTable from "../../admin/components/RecentUploadsTable"; // Assuming RecentUploadsTable is a component, not a page
 import AdminLayout from "../../admin/AdminLayout";
 import SchedulePage from "../../admin/SchedulePage";
+import AdminProfile from "../../admin/AdminProfile";
 
 const AdminRoutes = () => {
     const { firebaseUser, mongoUser } = useAuth();
@@ -23,6 +24,7 @@ const AdminRoutes = () => {
             <Routes>
                 <Route index element={<AdminDashboard />} />
                 <Route path="user" element={<AdminDashboard />} />
+                <Route path="profile" element={<AdminProfile />} />
                 <Route path="upload-stats" element={<UploadStats />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="uploads" element={<RecentUploadsTable />} />

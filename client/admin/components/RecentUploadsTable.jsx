@@ -57,11 +57,22 @@ const blogContentStyles = `
         color: #6b7280;
     }
     
+    /* Dark mode for blockquote */
+    html.dark .blog-content blockquote {
+        border-left-color: #4B5563; /* dark gray */
+        color: #9CA3AF; /* light gray */
+    }
+
     .blog-content a {
         color: #3b82f6;
         text-decoration: underline;
     }
     
+    /* Dark mode for links */
+    html.dark .blog-content a {
+        color: #60A5FA; /* lighter blue */
+    }
+
     .blog-content a:hover {
         color: #1d4ed8;
     }
@@ -82,11 +93,23 @@ const blogContentStyles = `
         margin: 1em 0;
     }
     
+    /* Dark mode for pre */
+    html.dark .blog-content pre {
+        background-color: #1F2937; /* dark gray */
+        color: #E5E7EB; /* light text */
+    }
+
     .blog-content code {
         background-color: #f3f4f6;
         padding: 0.2em 0.4em;
         border-radius: 0.25rem;
         font-family: 'Courier New', monospace;
+    }
+
+    /* Dark mode for code */
+    html.dark .blog-content code {
+        background-color: #1F2937; /* dark gray */
+        color: #E5E7EB; /* light text */
     }
     
     .blog-content table {
@@ -101,15 +124,30 @@ const blogContentStyles = `
         text-align: left;
     }
     
+    /* Dark mode for table borders */
+    html.dark .blog-content th, html.dark .blog-content td {
+        border-color: #4B5563; /* dark gray */
+    }
+
     .blog-content th {
         background-color: #f9fafb;
         font-weight: bold;
+    }
+
+    /* Dark mode for table headers */
+    html.dark .blog-content th {
+        background-color: #374151; /* dark gray */
+        color: #E5E7EB;
     }
     
     .blog-content hr {
         border: none;
         border-top: 2px solid #e5e7eb;
         margin: 2em 0;
+    }
+    /* Dark mode for hr */
+    html.dark .blog-content hr {
+        border-top-color: #4B5563;
     }
 `;
 
@@ -271,52 +309,52 @@ export default function RecentUploadsTable() {
             {/* Inject CSS styles */}
             <style dangerouslySetInnerHTML={{ __html: blogContentStyles }} />
 
-            <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">Recent Uploads</h2>
-                    <span className="text-sm text-gray-500">{uploads.length} total blogs</span>
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Recent Uploads</h2>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">{uploads.length} total blogs</span>
                 </div>
 
                 {uploads.length === 0 ? (
                     <div className="text-center py-12">
-                        <div className="text-gray-400 text-lg">No uploads found</div>
+                        <div className="text-gray-400 dark:text-gray-500 text-lg">No uploads found</div>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead className="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Title
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Author
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Date
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
                                 {currentUploads.map(upload => ( // Use currentUploads for pagination
-                                    <tr key={upload._id} className="hover:bg-gray-50">
+                                    <tr key={upload._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900 max-w-xs truncate">
+                                            <div className="text-sm font-medium text-gray-900 dark:text-white max-w-xs truncate">
                                                 {upload.title}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
-                                                <div className="text-sm text-gray-900">
+                                                <div className="text-sm text-gray-900 dark:text-white">
                                                     {upload.authorId?.name || "Unknown"}
                                                 </div>
                                                 {upload.authorId?._id && (
                                                     <button
                                                         onClick={() => handleViewUser(upload.authorId._id)}
-                                                        className="ml-2 text-blue-600 hover:text-blue-800"
+                                                        className="ml-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
                                                         title="View user profile"
                                                     >
                                                         <User size={16} />
@@ -324,21 +362,21 @@ export default function RecentUploadsTable() {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                             {new Date(upload.createdAt).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex space-x-2">
                                                 <button
                                                     onClick={() => handleViewBlog(upload)}
-                                                    className="text-blue-600 hover:text-blue-800 p-1 rounded"
+                                                    className="text-blue-600 hover:text-blue-800 p-1 rounded dark:text-blue-400 dark:hover:text-blue-200"
                                                     title="View blog"
                                                 >
                                                     <Eye size={18} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteBlog(upload._id)}
-                                                    className="text-red-600 hover:text-red-800 p-1 rounded"
+                                                    className="text-red-600 hover:text-red-800 p-1 rounded dark:text-red-400 dark:hover:text-red-200"
                                                     title="Delete blog"
                                                 >
                                                     <Trash2 size={18} />
@@ -353,19 +391,19 @@ export default function RecentUploadsTable() {
                             <nav className="flex justify-end items-center gap-x-1 mt-4">
                                 <button
                                     type="button"
-                                    className="min-h-[38px] min-w-[38px] flex justify-center items-center text-gray-800 hover:bg-gray-100 py-2 px-3 text-sm rounded-lg focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
+                                    className="min-h-[38px] min-w-[38px] flex justify-center items-center text-gray-800 hover:bg-gray-100 py-2 px-3 text-sm rounded-lg focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700"
                                     onClick={goToPrevPage}
                                     disabled={currentPage === 1}
                                 >
                                     <ChevronLeft size={16} />
                                     <span>Previous</span>
                                 </button>
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-gray-600 dark:text-gray-400">
                                     Page {currentPage} of {totalPages}
                                 </div>
                                 <button
                                     type="button"
-                                    className="min-h-[38px] min-w-[38px] flex justify-center items-center text-gray-800 hover:bg-gray-100 py-2 px-3 text-sm rounded-lg focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
+                                    className="min-h-[38px] min-w-[38px] flex justify-center items-center text-gray-800 hover:bg-gray-100 py-2 px-3 text-sm rounded-lg focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700"
                                     onClick={goToNextPage}
                                     disabled={currentPage === totalPages}
                                 >
@@ -380,18 +418,18 @@ export default function RecentUploadsTable() {
                 {/* Blog Modal */}
                 {showBlogModal && selectedBlog && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg max-w-5xl w-full max-h-[95vh] overflow-hidden flex flex-col">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-5xl w-full max-h-[95vh] overflow-hidden flex flex-col">
                             {/* Modal Header */}
-                            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+                            <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
                                 <div>
-                                    <h3 className="text-xl font-bold text-gray-800">Blog Preview</h3>
-                                    <p className="text-sm text-gray-500 mt-1">
+                                    <h3 className="text-xl font-bold text-gray-800 dark:text-white">Blog Preview</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                         By {selectedBlog.authorId?.name || "Unknown"} • {new Date(selectedBlog.createdAt).toLocaleDateString()}
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => setShowBlogModal(false)}
-                                    className="text-gray-400 hover:text-gray-600 text-2xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
+                                    className="text-gray-400 hover:text-gray-600 text-2xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-700"
                                 >
                                     ×
                                 </button>
@@ -401,7 +439,7 @@ export default function RecentUploadsTable() {
                             <div className="flex-1 overflow-y-auto p-6">
                                 <div className="max-w-none prose prose-lg">
                                     {/* Blog Title */}
-                                    <h1 className="text-3xl font-bold text-gray-900 mb-6 leading-tight">
+                                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
                                         {selectedBlog.title}
                                     </h1>
 
@@ -413,7 +451,7 @@ export default function RecentUploadsTable() {
                                                     ? selectedBlog.imageGallery[currentImageIndex]
                                                     : selectedBlog.previewImage}
                                                 alt={selectedBlog.title}
-                                                className="w-full object-cover max-h-80 rounded-lg shadow-md mx-auto" // Adjusted max-height and added mx-auto for centering
+                                                className="w-full object-cover max-h-80 rounded-lg shadow-md mx-auto"
                                                 onError={(e) => {
                                                     e.target.style.display = 'none';
                                                 }}
@@ -439,9 +477,9 @@ export default function RecentUploadsTable() {
 
                                     {/* Blog Content */}
                                     <div
-                                        className="blog-content text-gray-800 leading-relaxed"
+                                        className="blog-content text-gray-800 dark:text-gray-200 leading-relaxed"
                                         dangerouslySetInnerHTML={{
-                                            __html: selectedBlog.content || "<p class='text-gray-500 italic'>No content available</p>"
+                                            __html: selectedBlog.content || "<p class='text-gray-500 italic dark:text-gray-400'>No content available</p>"
                                         }}
                                         style={{
                                             wordWrap: 'break-word',
@@ -450,8 +488,8 @@ export default function RecentUploadsTable() {
                                     />
 
                                     {/* Blog Metadata */}
-                                    <div className="mt-8 pt-6 border-t border-gray-200">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                                    <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-300">
                                             <div>
                                                 <span className="font-semibold">Published:</span> {new Date(selectedBlog.createdAt).toLocaleString()}
                                             </div>
@@ -479,41 +517,41 @@ export default function RecentUploadsTable() {
                 {/* User Modal */}
                 {showUserModal && selectedUser && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg max-w-md w-full mx-4 p-6">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full mx-4 p-6">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-xl font-bold text-gray-800">User Profile</h3>
+                                <h3 className="text-xl font-bold text-gray-800 dark:text-white">User Profile</h3>
                                 <button
                                     onClick={() => setShowUserModal(false)}
-                                    className="text-gray-500 hover:text-gray-700 text-2xl"
+                                    className="text-gray-500 hover:text-gray-700 text-2xl dark:text-gray-400 dark:hover:text-gray-200"
                                 >
                                     ×
                                 </button>
                             </div>
                             <div className="space-y-4">
                                 <div>
-                                    <h4 className="font-semibold text-gray-700">Name:</h4>
-                                    <p className="text-gray-900">{selectedUser.name}</p>
+                                    <h4 className="font-semibold text-gray-700 dark:text-gray-300">Name:</h4>
+                                    <p className="text-gray-900 dark:text-white">{selectedUser.name}</p>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold text-gray-700">Email:</h4>
-                                    <p className="text-gray-900">{selectedUser.email}</p>
+                                    <h4 className="font-semibold text-gray-700 dark:text-gray-300">Email:</h4>
+                                    <p className="text-gray-900 dark:text-white">{selectedUser.email}</p>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold text-gray-700">Status:</h4>
-                                    <p className={`text-sm font-medium ${selectedUser.isBlocked ? 'text-red-600' : 'text-green-600'}`}>
+                                    <h4 className="font-semibold text-gray-700 dark:text-gray-300">Status:</h4>
+                                    <p className={`text-sm font-medium ${selectedUser.isBlocked ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                                         {selectedUser.isBlocked ? 'Blocked' : 'Active'}
                                     </p>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold text-gray-700">Joined:</h4>
-                                    <p className="text-gray-900">{new Date(selectedUser.createdAt).toLocaleDateString()}</p>
+                                    <h4 className="font-semibold text-gray-700 dark:text-gray-300">Joined:</h4>
+                                    <p className="text-gray-900 dark:text-white">{new Date(selectedUser.createdAt).toLocaleDateString()}</p>
                                 </div>
                                 <div className="pt-4">
                                     <button
                                         onClick={() => handleBlockUser(selectedUser._id, selectedUser.isBlocked)}
                                         className={`w-full px-4 py-2 rounded-md text-white font-medium ${selectedUser.isBlocked
-                                            ? 'bg-green-600 hover:bg-green-700'
-                                            : 'bg-red-600 hover:bg-red-700'
+                                            ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800'
+                                            : 'bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800'
                                             }`}
                                     >
                                         {selectedUser.isBlocked ? (

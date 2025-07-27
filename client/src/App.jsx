@@ -1,8 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useState, useEffect, createContext, useContext, } from 'react';
+/* eslint-disable no-unused-vars */
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
 import { useAuth, AuthProvider } from "./context/AuthContext";
 import { CategoryProvider } from "./context/CategoryContext";
-import { AppSettingsProvider, useAppSettings } from './context/AppSettingsContext'; // UPDATED IMPORT
+import { AppSettingsProvider, useAppSettings } from './context/AppSettingsContext';
 import Dashboard from "./pages/Dashboard";
 import AuthPage from "./pages/AuthPage";
 import CreateBlog from "./pages/CreateBlog";
@@ -19,51 +20,129 @@ import Following from "./pages/Following";
 import CategoryPage from './pages/CategoryPage';
 import AdminRoutes from './routes/AdminRoutes';
 import TagPage from './pages/TagPage';
-import MaintenancePage from './components/MaintenancePage';
 import SettingsPage from "./pages/Settings";
+import LandingPage from './pages/LandingPage';
+import toast, { Toaster } from 'react-hot-toast';
+import axios from 'axios';
 
-
-// Theme Context (assuming it's here and correctly exported)
 const ThemeContext = createContext();
 export const useTheme = () => useContext(ThemeContext);
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-// Existing ProtectedRoute
+function MaintenanceWrapper({ children }) {
+  const { mongoUser, firebaseUser } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate(); 
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const [loadingMaintenanceStatus, setLoadingMaintenanceStatus] = useState(true);
+  const maintenanceToastIdRef = useRef(null); 
+
+  // Function to fetch maintenance status
+  const fetchMaintenanceStatus = async () => {
+    try {
+      const token = firebaseUser ? await firebaseUser.getIdToken() : null;
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await axios.get(`${API_BASE_URL}/admin/settings`, { headers });
+      const { maintenanceMode } = res.data;
+      setIsMaintenanceMode(maintenanceMode);
+    } catch (error) {
+      console.error("Failed to fetch maintenance status:", error);
+      setIsMaintenanceMode(false); // Assume not in maintenance if fetch fails
+    } finally {
+      setLoadingMaintenanceStatus(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMaintenanceStatus();
+    const interval = setInterval(fetchMaintenanceStatus, 60000); 
+    return () => clearInterval(interval);
+  }, [firebaseUser]); 
+  useEffect(() => {
+    const isAdmin = mongoUser?.role === 'admin' || mongoUser?.role === 'superadmin';
+    const isAuthPage = location.pathname.startsWith('/auth');
+    const isAdminPage = location.pathname.startsWith('/admin');
+    const isLandingPage = location.pathname === '/';
+    const shouldRedirect = isMaintenanceMode && !isAdmin && !isLandingPage && !isAuthPage && !isAdminPage;
+
+    if (shouldRedirect) {
+      navigate('/', { replace: true });
+      if (!maintenanceToastIdRef.current) {
+        maintenanceToastIdRef.current = toast.error(
+          "Site is currently undergoing maintenance. Please check back later!",
+          {
+            duration: Infinity, 
+            id: 'maintenance-toast', 
+          }
+        );
+      }
+    } else {
+      // If maintenance mode is off, or user is admin, or on an allowed page, dismiss toast
+      if (maintenanceToastIdRef.current) {
+        toast.dismiss(maintenanceToastIdRef.current);
+        maintenanceToastIdRef.current = null;
+      }
+    }
+    if (isMaintenanceMode && !isAdmin && isLandingPage) {
+      if (!maintenanceToastIdRef.current || toast.current(maintenanceToastIdRef.current)?.message !== "Site is currently undergoing maintenance. Please check back later!") {
+        if (maintenanceToastIdRef.current) {
+          toast.dismiss(maintenanceToastIdRef.current);
+        }
+        maintenanceToastIdRef.current = toast.error(
+          "Site is currently undergoing maintenance. Please check back later!",
+          {
+            duration: Infinity,
+            id: 'maintenance-landing-toast', 
+          }
+        );
+      }
+    } else { 
+      if (maintenanceToastIdRef.current && toast.current(maintenanceToastIdRef.current)?.id === 'maintenance-landing-toast') {
+        toast.dismiss(maintenanceToastIdRef.current);
+        maintenanceToastIdRef.current = null;
+      }
+    }
+
+  }, [isMaintenanceMode, mongoUser, location.pathname, navigate]); 
+
+  if (loadingMaintenanceStatus) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+        <p className="text-xl text-gray-700 dark:text-gray-300">Loading site status...</p>
+      </div>
+    );
+  }
+
+  return children;
+}
+
+
 const ProtectedRoute = ({ children }) => {
   const { mongoUser } = useAuth();
-  const { maintenanceMode, isSettingsLoading, isAdmin } = useAppSettings(); // siteTitle removed
   const location = useLocation();
 
-  if (isSettingsLoading) {
-    return null; // Or a smaller loading indicator
+  useEffect(() => {
+    if (!mongoUser && location.pathname !== '/' && location.pathname !== '/auth') {
+      toast.error("Please sign in or create an account to access this page.");
+    }
+  }, [mongoUser, location.pathname]);
+
+  if (!mongoUser) {
+    return <Navigate to="/" replace />;
   }
 
-  // If maintenance mode is ON and user is NOT an admin, redirect them to /maintenance
-  if (maintenanceMode && !isAdmin && location.pathname !== '/maintenance') {
-    return <Navigate to="/maintenance" replace />;
-  }
-
-  return mongoUser ? children : <Navigate to="/auth" />;
+  return children;
 };
 
-// Existing PublicRoute
 const PublicRoute = ({ children }) => {
   const { mongoUser } = useAuth();
-  const { maintenanceMode, isSettingsLoading, isAdmin } = useAppSettings(); // siteTitle removed
-  const location = useLocation();
-
-  if (isSettingsLoading) {
-    return null; // Or a smaller loading indicator
-  }
-
-  // If maintenance mode is ON and user is NOT an admin, and current path is not /maintenance, redirect
-  if (maintenanceMode && !isAdmin && location.pathname !== '/maintenance') {
-    return <Navigate to="/maintenance" replace />;
-  }
-
-  return mongoUser ? <Navigate to="/" /> : children;
+  return mongoUser ? <Navigate to="/user" /> : children;
 };
 
+const LandingRoute = ({ children }) => {
+  return children;
+};
 
 function AppContent() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -72,13 +151,11 @@ function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
+  const { mongoUser } = useAuth(); // Get mongoUser to check admin role
 
   const isAuthOrAdminPage = location.pathname.startsWith('/auth') || location.pathname.startsWith('/admin');
+  const isLandingPage = location.pathname === '/';
 
-  // Get app settings from context
-  const { maintenanceMode, isSettingsLoading, isAdmin } = useAppSettings(); // siteTitle removed
-
-  // Apply theme class to <html> tag
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -88,9 +165,11 @@ function AppContent() {
       localStorage.setItem("theme", "light");
     }
   }, [darkMode]);
+
   useEffect(() => {
     const pathsToExclude = [
       '/',
+      '/dashboard',
       '/user',
       '/trending',
       '/my-blogs'
@@ -111,42 +190,26 @@ function AppContent() {
     }
   }, [location.pathname]);
 
-  if (isSettingsLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
-        <p className="ml-4 text-xl text-gray-700">Loading application settings...</p>
-      </div>
-    );
-  }
-
-  // If maintenance mode is ON and user is NOT an admin, render only MaintenancePage
-  if (maintenanceMode && !isAdmin) {
-    return (
-      <Routes>
-        <Route path="/maintenance" element={<MaintenancePage />} />
-        <Route path="*" element={<Navigate to="/maintenance" replace />} />
-      </Routes>
-    );
-  }
-
-
   return (
     <ThemeContext.Provider value={{ darkMode, setDarkMode }}>
       <div className="flex min-h-screen bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-white transition-colors duration-300 ease-in-out">
-        {!isAuthOrAdminPage && (
+        {!isAuthOrAdminPage && !isLandingPage && (
           <Navbar
             sidebarOpen={sidebarOpen}
             setSidebarOpen={setSidebarOpen}
             sidebarCollapsed={sidebarCollapsed}
             setSidebarCollapsed={setSidebarCollapsed}
             activeTab={location.pathname}
-          // siteTitle={siteTitle} // Removed siteTitle prop
           />
         )}
 
-        <div className={`flex-1 flex flex-col transition-all duration-300 ${!isAuthOrAdminPage && sidebarCollapsed ? 'md:ml-16' : !isAuthOrAdminPage ? 'md:ml-64' : ''}`}>
-          {!isAuthOrAdminPage && (
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${!isAuthOrAdminPage && !isLandingPage && sidebarCollapsed
+          ? 'md:ml-16'
+          : !isAuthOrAdminPage && !isLandingPage
+            ? 'md:ml-64'
+            : ''
+          }`}>
+          {!isAuthOrAdminPage && !isLandingPage && (
             <Sidebar
               isCollapsed={sidebarCollapsed}
               setIsCollapsed={setSidebarCollapsed}
@@ -156,40 +219,45 @@ function AppContent() {
             />
           )}
 
-          <main className="flex-1 overflow-x-hidden overflow-y-auto">
-            <Routes>
-              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/user" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/profile/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-              <Route path="/write" element={<ProtectedRoute><CreateBlog /></ProtectedRoute>} />
-              <Route path="/edit-blog/:id" element={<ProtectedRoute><EditBlog /></ProtectedRoute>} />
-              <Route path="/blog/:id" element={<ProtectedRoute><BlogDetails /></ProtectedRoute>} />
-              <Route path="/my-blogs" element={<ProtectedRoute><MyBlogsPage /></ProtectedRoute>} />
-              <Route path="/liked" element={<ProtectedRoute><LikedPosts /></ProtectedRoute>} />
-              <Route path="/bookmarks" element={<ProtectedRoute><Bookmarks /></ProtectedRoute>} />
-              <Route path="/trending" element={<ProtectedRoute><Trending /></ProtectedRoute>} />
-              <Route path="/following" element={<ProtectedRoute><Following /></ProtectedRoute>} />
-              <Route path="/category/:name" element={<ProtectedRoute><CategoryPage /></ProtectedRoute>} />
-              <Route path="/tag/:name" element={<ProtectedRoute><TagPage /></ProtectedRoute>} />
-              <Route path="/auth" element={<PublicRoute><AuthPage /></PublicRoute>} />
-              <Route path="/admin/*" element={<ProtectedRoute><AdminRoutes /></ProtectedRoute>} />
+          <main className={`flex-1 overflow-x-hidden overflow-y-auto ${!isAuthOrAdminPage && !isLandingPage ? 'pt-20' : ''}`}>
+            {/* Wrap routes with MaintenanceWrapper */}
+            <MaintenanceWrapper>
+              <Routes>
+                {/* Landing page - accessible to everyone */}
+                <Route path="/" element={<LandingRoute><LandingPage /></LandingRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/user" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/profile/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+                <Route path="/write" element={<ProtectedRoute><CreateBlog /></ProtectedRoute>} />
+                <Route path="/edit-blog/:id" element={<ProtectedRoute><EditBlog /></ProtectedRoute>} />
+                <Route path="/blog/:id" element={<ProtectedRoute><BlogDetails /></ProtectedRoute>} />
+                <Route path="/my-blogs" element={<ProtectedRoute><MyBlogsPage /></ProtectedRoute>} />
+                <Route path="/liked" element={<ProtectedRoute><LikedPosts /></ProtectedRoute>} />
+                <Route path="/bookmarks" element={<ProtectedRoute><Bookmarks /></ProtectedRoute>} />
+                <Route path="/trending" element={<ProtectedRoute><Trending /></ProtectedRoute>} />
+                <Route path="/following" element={<ProtectedRoute><Following /></ProtectedRoute>} />
+                <Route path="/category/:name" element={<ProtectedRoute><CategoryPage /></ProtectedRoute>} />
+                <Route path="/tag/:name" element={<ProtectedRoute><TagPage /></ProtectedRoute>} />
 
-              <Route path="/maintenance" element={
-                maintenanceMode && !isAdmin ? <MaintenancePage /> : <Navigate to="/" replace />
-              } />
-            </Routes>
+                {/* Auth route */}
+                <Route path="/auth" element={<PublicRoute><AuthPage /></PublicRoute>} />
+                <Route path="/admin/*" element={<ProtectedRoute><AdminRoutes /></ProtectedRoute>} />
+                <Route path="*" element={<ProtectedRoute><Navigate to="/user" replace /></ProtectedRoute>} />
+              </Routes>
+            </MaintenanceWrapper>
           </main>
         </div>
 
-        {!isAuthOrAdminPage && sidebarOpen && (
+        {!isAuthOrAdminPage && !isLandingPage && sidebarOpen && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
             onClick={() => setSidebarOpen(false)}
           ></div>
         )}
       </div>
+      <Toaster position="top-center" reverseOrder={false} /> {/* Toast container */}
     </ThemeContext.Provider>
   );
 }
@@ -197,7 +265,7 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AuthProvider> {/* AuthProvider as outermost */}
+      <AuthProvider>
         <CategoryProvider>
           <AppSettingsProvider>
             <AppContent />

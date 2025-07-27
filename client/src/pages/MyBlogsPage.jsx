@@ -91,7 +91,7 @@ const MyBlogsPage = () => {
     }
 
     return (
-        <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} pt-18`}>
+        <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} `}>
             <div className="max-w-6xl mx-auto px-6 py-8">
                 {myBlogs.length === 0 ? (
                     <div className={`text-center p-10 rounded-lg ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-600'} shadow-lg`}>

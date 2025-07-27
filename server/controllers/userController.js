@@ -1,7 +1,9 @@
+// userController.js
 import User from '../models/User.js';
-import Blog from '../models/Blog.js'; 
+import Blog from '../models/Blog.js';
+import Notification from '../models/Notification.js'; // Make sure Notification model is imported
+import UserSettings from '../models/UserSettings.js'; // Assuming UserSettings model exists
 import { canViewPrivateProfile } from '../utils/privacyUtils.js';
-import UserSettings from '../models/UserSettings.js';
 import { injectFollowNotification } from './notificationController.js';
 
 export const getCurrentUser = async (req, res) => {
@@ -60,16 +62,46 @@ export const getUserById = async (req, res) => {
 export const deleteUser = async (req, res) => {
     try {
         const userId = req.params.id;
+        // Find the user to ensure it exists before proceeding
+        const userToDelete = await User.findById(userId);
+        if (!userToDelete) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // 1. Delete all blogs created by the user
         await Blog.deleteMany({ authorId: userId });
+
+        // 2. Remove user's comments and likes from all other blogs
+        // This is crucial for deeply nested data.
+        await Blog.updateMany(
+            {}, // Affect all blog documents
+            {
+                $pull: {
+                    comments: { userId: userId }, // Remove comments by this user
+                    likes: userId, // Remove likes by this user
+                    viewers: userId, // Remove user from viewers array
+                    bookmarks: userId // Remove user from bookmarks array
+                }
+            }
+        );
+
+        // 3. Delete notifications where the user is sender or recipient
         await Notification.deleteMany({
             $or: [{ sender: userId }, { recipient: userId }]
         });
+
+        // 4. Remove user from followers and following lists of all other users
         await User.updateMany({}, {
             $pull: {
                 followers: userId,
                 following: userId
             }
         });
+
+        // 5. Delete the user's settings document
+        await UserSettings.deleteOne({ user: userId });
+
+        // 6. Finally, delete the user document itself
         await User.findByIdAndDelete(userId);
 
         res.json({ success: true, message: "User and all associated data deleted." });
@@ -136,7 +168,7 @@ export const unfollowUser = async (req, res) => {
         res.status(500).json({ error: 'Failed to unfollow user' });
     }
 };
-  
+
 export const getUserStats = async (req, res) => {
     try {
         const userId = req.user._id;
@@ -169,7 +201,7 @@ export const getUserStatsById = async (req, res) => {
         console.error("getUserStatsById error:", err);
         res.status(500).json({ error: 'Failed to get user stats' });
     }
-  };
+};
 
 export const logoutUser = async (req, res) => {
     try {

@@ -138,7 +138,7 @@ const Trending = () => {
     };
 
     return (
-        <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} pt-18`}>
+        <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} `}>
             {/* Removed sticky, top-0, z-40 for header overlap fix */}
             <header className={`border-b ${darkMode ? 'bg-gray-900/80 border-gray-800' : 'bg-gray-50/80 border-gray-100'}`}>
                 <div className="max-w-6xl mx-auto px-6 py-4">

@@ -47,18 +47,18 @@ export default function UploadStats() {
     }, []);
 
     const StatCard = ({ title, value, subtitle, icon: Icon, color, trend }) => (
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4" style={{ borderLeftColor: color }}>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border-l-4" style={{ borderLeftColor: color }}>
             <div className="flex items-center justify-between">
                 <div>
                     <div className="flex items-center">
                         <Icon className="mr-2" size={20} color={color} />
-                        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             {title}
                         </h3>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{value}</p>
                     {subtitle && (
-                        <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{subtitle}</p>
                     )}
                 </div>
                 {trend && (
@@ -67,16 +67,15 @@ export default function UploadStats() {
                             <TrendingUp size={16} />
                             <span className="ml-1 text-sm font-medium">+{trend}%</span>
                         </div>
-                        <span className="text-xs text-gray-500">vs last week</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">vs last week</span>
                     </div>
                 )}
             </div>
         </div>
     );
-
     const QuickStat = ({ label, value, color }) => (
-        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <span className="text-sm font-medium text-gray-700">{label}</span>
+        <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
             <span className="text-lg font-bold" style={{ color }}>{value}</span>
         </div>
     );
@@ -91,13 +90,13 @@ export default function UploadStats() {
 
     if (error) {
         return (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                <div className="text-red-800 text-center">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 dark:bg-red-900/20 dark:border-red-700">
+                <div className="text-red-800 text-center dark:text-red-300">
                     <h3 className="text-lg font-semibold mb-2">Error Loading Stats</h3>
                     <p className="text-sm">{error}</p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                        className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
                     >
                         Retry
                     </button>
@@ -109,13 +108,13 @@ export default function UploadStats() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
                         <BarChart3 className="mr-3" size={28} />
                         Dashboard Statistics
                     </h2>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
                         Last updated: {new Date().toLocaleString()}
                     </div>
                 </div>
@@ -156,8 +155,8 @@ export default function UploadStats() {
             {/* Detailed Stats */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Blog Stats */}
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
                         <FileText className="mr-2" size={20} />
                         Blog Statistics
                     </h3>
@@ -170,8 +169,8 @@ export default function UploadStats() {
                 </div>
 
                 {/* User Stats */}
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
                         <Users className="mr-2" size={20} />
                         User Statistics
                     </h3>
@@ -185,29 +184,29 @@ export default function UploadStats() {
             </div>
 
             {/* Performance Metrics */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
                     <TrendingUp className="mr-2" size={20} />
                     Performance Metrics
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-600">
+                    <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg dark:from-blue-900/20 dark:to-blue-900/40">
+                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                             {Math.round((stats.views?.total || 0) / (stats.blogs?.published || 1)) || 0}
                         </div>
-                        <div className="text-sm text-gray-600">Avg Views per Blog</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">Avg Views per Blog</div>
                     </div>
-                    <div className="text-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">
+                    <div className="text-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg dark:from-green-900/20 dark:to-green-900/40">
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                             {Math.round((stats.blogs?.total || 0) / (stats.users?.total || 1)) || 0}
                         </div>
-                        <div className="text-sm text-gray-600">Blogs per User</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">Blogs per User</div>
                     </div>
-                    <div className="text-center p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
-                        <div className="text-2xl font-bold text-purple-600">
+                    <div className="text-center p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg dark:from-purple-900/20 dark:to-purple-900/40">
+                        <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                             {Math.round((stats.views?.total || 0) / (stats.users?.total || 1)) || 0}
                         </div>
-                        <div className="text-sm text-gray-600">Views per User</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">Views per User</div>
                     </div>
                 </div>
             </div>

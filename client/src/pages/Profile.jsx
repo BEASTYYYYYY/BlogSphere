@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ProfileCard from '../components/ProfileCard'; // Assuming this is still used or can be removed if redundant
-import QuickStats from '../components/QuickStats'; // Assuming this is still used or can be removed if redundant
 import BlogCard from '../components/BlogCard';
 import ProfileEditModal from '../components/ProfileEditModal';
 import { Search, UserPlus, UserMinus, MoreHorizontal, Share2, MessageCircle, Camera, User } from 'lucide-react';
@@ -437,7 +435,7 @@ export default function Profile() {
 
 
     return (
-        <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} pt-20`}>
+        <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} `}>
             <div className="relative">
                 {/* Cover Image Section */}
                 <div className="h-64 sm:h-72 md:h-80 relative overflow-hidden">

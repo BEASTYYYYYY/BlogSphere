@@ -9,7 +9,7 @@ export const getAllCategories = async (req, res) => {
         const top5 = categories.slice(0, 5);
         const others = categories.slice(5);
         const counts = await Promise.all(
-            top5.map(cat => Blog.countDocuments({ category: cat.name }))
+            top5.map(cat => Blog.countDocuments({ category: cat.name, status: 'published' })) // Added status filter
         );
         const enrichedTop5 = top5.map((cat, index) => ({
             ...cat.toObject(),
@@ -22,6 +22,7 @@ export const getAllCategories = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch categories' });
     }
 };
+
 export const suggestCategory = async (req, res) => {
     const { name } = req.body;
 
@@ -53,6 +54,7 @@ export const suggestCategory = async (req, res) => {
 export const getPopularCategories = async (req, res) => {
     try {
         const popular = await Blog.aggregate([
+            { $match: { status: 'published' } }, // Added match for published blogs
             { $group: { _id: '$category', count: { $sum: 1 } } },
             { $sort: { count: -1 } },
             { $limit: 5 }
@@ -80,9 +82,9 @@ export const getBlogsByCategorySlug = async (req, res) => {
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
 
-        // FIX: Changed comma-separated fields to space-separated fields in populate
-        const blogs = await Blog.find({ category: new RegExp(`^${name}$`, 'i') })
-            .populate('authorId', 'name avatar profilePicture'); // Corrected line
+        // FIX: Add status: 'published' to the query
+        const blogs = await Blog.find({ category: new RegExp(`^${name}$`, 'i'), status: 'published' }) // MODIFIED LINE
+            .populate('authorId', 'name avatar profilePicture');
 
         if (!blogs || blogs.length === 0) {
             return res.status(404).json({ error: 'No blogs found in this category' });

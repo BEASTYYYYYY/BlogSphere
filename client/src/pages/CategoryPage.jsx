@@ -35,7 +35,7 @@ const CategoryPage = () => {
         <div className={`min-h-screen relative transition-all duration-500 ${darkMode
                 ? 'bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800'
                 : 'bg-gradient-to-br from-blue-50 via-white to-indigo-50'
-            } pt-18`}>
+            } `}>
             {/* Floating Background Shapes */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className={`absolute top-20 left-10 w-32 h-32 rounded-full blur-2xl opacity-30 animate-pulse ${darkMode ? 'bg-blue-600' : 'bg-blue-200'
