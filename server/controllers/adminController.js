@@ -229,14 +229,10 @@ export const getSettings = async (req, res) => {
     }
 };
 
-// New: PUT /api/admin/settings
 export const updateSettings = async (req, res) => {
     try {
-        const { siteTitle, maintenanceMode } = req.body;
+        const {  maintenanceMode } = req.body;
 
-        if (siteTitle !== undefined) {
-            await Setting.setSetting('siteTitle', siteTitle);
-        }
         if (maintenanceMode !== undefined) {
             await Setting.setSetting('maintenanceMode', maintenanceMode);
         }

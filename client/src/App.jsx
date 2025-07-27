@@ -1,3 +1,4 @@
+// App.jsx
 /* eslint-disable no-unused-vars */
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
@@ -31,7 +32,7 @@ export const useTheme = () => useContext(ThemeContext);
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function MaintenanceWrapper({ children }) {
-  const { mongoUser, firebaseUser, loading: authLoading } = useAuth(); // Destructure authLoading from useAuth
+  const { mongoUser, firebaseUser, loading: authLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
@@ -39,14 +40,15 @@ function MaintenanceWrapper({ children }) {
   const maintenanceToastIdRef = useRef(null);
 
   const fetchMaintenanceStatus = async () => {
-    if (authLoading || firebaseUser === undefined) {
+    // Only attempt to fetch if authentication state is definitively loaded
+    if (authLoading || (firebaseUser === undefined)) {
       setLoadingMaintenanceStatus(false);
       setIsMaintenanceMode(false);
       return;
     }
 
     try {
-      const res = await axios.get(`${API_BASE_URL}/admin/settings`);
+      const res = await axios.get(`${API_BASE_URL}/admin/settings`); // This is the call that gets a 401
       const { maintenanceMode } = res.data;
       setIsMaintenanceMode(maintenanceMode);
     } catch (error) {
@@ -63,17 +65,19 @@ function MaintenanceWrapper({ children }) {
   };
 
   useEffect(() => {
-    if (!authLoading) {
+    // This useEffect now runs when authLoading changes or firebaseUser changes.
+    // It prevents the fetch from running before AuthContext has determined auth state.
+    if (!authLoading) { // Only run fetch after AuthContext finishes loading
       fetchMaintenanceStatus();
       const interval = setInterval(fetchMaintenanceStatus, 60000);
       return () => clearInterval(interval);
-    } else {
+    } else { // authLoading is true, initial state
       setLoadingMaintenanceStatus(true);
     }
-  }, [authLoading]); // Depend on authLoading
+  }, [authLoading, firebaseUser]); // Add firebaseUser to dependencies to re-trigger when user object changes
 
   useEffect(() => {
-    const isAdmin = mongoUser?.role === 'admin' || mongoUser?.role === 'superadmin';
+    const isAdmin = mongoUser?.role === 'admin' || mongoUser?.role === 'superadmin'; // Fixed isAdmin check
     const isAuthPage = location.pathname.startsWith('/auth');
     const isAdminPage = location.pathname.startsWith('/admin');
     const isLandingPage = location.pathname === '/';

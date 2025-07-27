@@ -1,3 +1,4 @@
+// AuthPage.jsx
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import {
@@ -8,6 +9,9 @@ import LoginForm from './Login';
 import axios from 'axios';
 import SignupForm from './SignUp';
 import { signInWithGoogle } from '../utils/googleAuth';
+
+// Add API_BASE_URL here
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function AuthPage() {
     const [isLogin, setIsLogin] = useState(true);
@@ -33,13 +37,14 @@ export default function AuthPage() {
         try {
             const user = await signInWithGoogle();
             const token = await user.getIdToken();
-            await axios.post('/api/auth/login', {}, {
+            // FIX: Use API_BASE_URL here
+            await axios.post(`${API_BASE_URL}/auth/login`, {}, { // <--- THIS LINE IS CHANGED
                 headers: { Authorization: `Bearer ${token}` }
             });
         } catch (err) {
             console.error(err.message);
         }
-      };
+    };
 
     const FloatingIcon = ({ icon: Icon, className, style }) => (
         <div className={`absolute opacity-20 animate-pulse ${className}`} style={style}>
