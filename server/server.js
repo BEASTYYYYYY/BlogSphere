@@ -14,7 +14,6 @@ import './config/emailTransporter.js';
 import { connectDB } from './config/db.js';
 import { initializeFirebaseAdmin } from './config/firebaseAdmin.js';
 
-// REMOVE: import { checkMaintenanceMode } from './middleware/maintenanceMiddleware.js';
 import { verifyFirebaseToken } from './middleware/authMiddleware.js';
 import scheduleRoutes from './routes/scheduleRoutes.js';
 import settingsRoutes from './routes/settingRoutes.js';
@@ -28,15 +27,19 @@ initializeFirebaseAdmin();
 app.use(cors());
 app.use(express.json());
 
-app.use(verifyFirebaseToken);
-// REMOVE: app.use(checkMaintenanceMode); // Remove this line
+// --- PUBLIC ROUTES (No Firebase Token required) ---
+// These routes should be accessible without authentication.
+app.use('/api/auth', authRoutes); // Auth routes typically handle their own login/signup
+app.use('/api/blogs', blogRoutes); // General blog listings, searching, and public blog details
+app.use('/api/categories', categoryRoutes); // General category listings
 
-// API Routes
-app.use('/api/auth', authRoutes);
+// --- AUTHENTICATED ROUTES (Firebase Token required) ---
+// All routes defined AFTER app.use(verifyFirebaseToken) will require a valid token.
+app.use(verifyFirebaseToken);
+
+// API Routes that require authentication
 app.use('/api/users', userRoutes);
-app.use('/api/blogs', blogRoutes);
 app.use('/api/comments', commentRoutes);
-app.use('/api/categories', categoryRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/admin', adminRoutes);
