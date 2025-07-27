@@ -4,7 +4,7 @@ import { Trash2, Image as ImageIcon, Star, StarOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../App';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ;
 
 const ImageUpload = ({ onUpload,  initialImages = [], initialPreview = '' }) => {
     const fileInputRef = useRef(null);

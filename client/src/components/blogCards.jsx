@@ -7,7 +7,7 @@ import LikeButton from './LikeButton';
 import CommentSection from './CommentSection';
 import axios from 'axios';
 import { useTheme } from '../App';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Wrap the component with React.memo for performance optimization
 const BlogCard = React.memo(({ blog, onEdit, onDelete, cardSize = 'normal', isAuthorView = false }) => {

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useAuth } from './AuthContext';
 
 const CategoryContext = createContext();
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ; // Ensure this is set in your .env file
 export const useCategory = () => useContext(CategoryContext);
 
 export const CategoryProvider = ({ children }) => {
@@ -17,11 +17,10 @@ export const CategoryProvider = ({ children }) => {
                 const token = await firebaseUser.getIdToken();
                 config.headers = { Authorization: `Bearer ${token}` };
             }
-            const res = await axios.get(`http://localhost:5000/api/categories/popular`, config);
+            const res = await axios.get(`${API_BASE_URL}/categories/popular`, config);
             setTopCategories(res.data);
         } catch (err) {
             console.error("Failed to fetch popular categories", err);
-            // You might want to handle specific error messages or states here if needed
         }
     };
 
@@ -29,7 +28,7 @@ export const CategoryProvider = ({ children }) => {
         if (firebaseUser) {
             fetchTopCategories();
         }
-    }, [firebaseUser]); // Re-fetch when firebaseUser changes (login/logout)
+    }, [firebaseUser]);
 
     return (
         <CategoryContext.Provider value={{ topCategories, refreshCategories: fetchTopCategories }}>

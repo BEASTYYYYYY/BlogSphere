@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Users, UserPlus, UserMinus, Frown, Sparkles } from 'lucide-react';
 import { useTheme } from '../App';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ;
 
 const Following = () => {
     const { mongoUser, firebaseUser } = useAuth();

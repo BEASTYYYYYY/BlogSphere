@@ -1,16 +1,16 @@
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext'; // Standard relative path
-import BlogCard from '../components/BlogCard'; // Standard relative path
+import { useAuth } from '../context/AuthContext'; 
+import BlogCard from '../components/BlogCard'; 
 import { TrendingUp, ThumbsUp, Bookmark, Hash, Frown } from 'lucide-react';
 import { useTheme } from '../App';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ;
 
 const Trending = () => {
     const { firebaseUser } = useAuth();
-    const [activeTab, setActiveTab] = useState('likes'); // 'likes', 'bookmarks', 'tags'
+    const [activeTab, setActiveTab] = useState('likes'); 
     const [trendingContent, setTrendingContent] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -23,8 +23,6 @@ const Trending = () => {
             try {
                 let url;
                 let config = {};
-
-                // UNCOMMENTED: Ensure token is included for authenticated requests
                 if (firebaseUser) {
                     const token = await firebaseUser.getIdToken();
                     config.headers = { Authorization: `Bearer ${token}` };
@@ -41,9 +39,9 @@ const Trending = () => {
                         url = `${API_BASE_URL}/blogs/trending/tags`;
                         break;
                     default:
-                        return; // Should not happen
+                        return; 
                 }
-                const response = await axios.get(url, config); // Pass config with headers
+                const response = await axios.get(url, config); 
                 setTrendingContent(response.data);
             } catch (err) {
                 console.error(`Failed to fetch trending ${activeTab}:`, err.response?.data || err.message);
@@ -54,7 +52,7 @@ const Trending = () => {
         };
 
         fetchTrendingContent();
-    }, [activeTab, firebaseUser]); // firebaseUser is a dependency for getIdToken()
+    }, [activeTab, firebaseUser]); 
 
     const renderContent = () => {
         if (loading) {

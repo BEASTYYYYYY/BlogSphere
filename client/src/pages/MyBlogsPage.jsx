@@ -6,7 +6,7 @@ import BlogCard from '../components/BlogCard'; // Standard relative path
 import { BookOpen, Frown } from 'lucide-react';
 import { useTheme } from '../App';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ;
 
 const MyBlogsPage = () => {
     const { mongoUser, firebaseUser } = useAuth();
