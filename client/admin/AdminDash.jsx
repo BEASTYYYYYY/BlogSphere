@@ -3,11 +3,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { getAuth } from "firebase/auth";
 import { useAuth } from "../src/context/AuthContext";
+import process from "process";
 import { Search, Filter, MoreVertical, Shield, ShieldCheck, Users, UserCheck, UserX, Eye, Edit, Trash2 } from "lucide-react";
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export default function AdminDashboard() { // Removed darkMode prop from here
+export default function AdminDashboard() { 
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -15,7 +16,7 @@ export default function AdminDashboard() { // Removed darkMode prop from here
     const [statusFilter, setStatusFilter] = useState("all");
     const [loading, setLoading] = useState(true);
     const [dropdownOpen, setDropdownOpen] = useState(null);
-    const dropdownRef = useRef(null); // Ref for the dropdown menu
+    const dropdownRef = useRef(null);
     const { firebaseUser } = useAuth();
 
     useEffect(() => {
@@ -47,8 +48,6 @@ export default function AdminDashboard() { // Removed darkMode prop from here
         });
         setFilteredUsers(filtered);
     }, [users, searchTerm, roleFilter, statusFilter]);
-
-    // Close dropdown when clicking outside
     useEffect(() => {
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
