@@ -5,7 +5,7 @@ import {
     injectCommentNotification,
     injectLikeNotification
 } from './notificationController.js';
-import cloudinary from '../config/cloudinary.js';
+import cloudinary from '../config/cloudinary.js'; //
 import checkBlogOwnerSetting from '../utils/checkBlogOwnerSetting.js';
 
 
@@ -163,7 +163,7 @@ export const likeBlog = async (req, res) => {
         if (!blog.likes.includes(req.user._id)) {
             blog.likes.push(req.user._id);
             await blog.save();
-            await injectLikeNotification(blog.authorId, req.user._id, blog._id); 
+            await injectLikeNotification(blog.authorId, req.user._id, blog._id);
         }
 
         res.json({
@@ -425,7 +425,21 @@ export const getFollowedBlogs = async (req, res) => {
 export const getBlogsByCategory = async (req, res) => {
     try {
         const categorySlug = req.params.name;
-        const category = await Category.findOne({ slug: categorySlug });
+        // The original Category model does not have a 'slug' field.
+        // It has a 'name' field that can be used.
+        // Assuming category slugs are derived from category names (e.g., 'history-of-art' from 'History of Art').
+        // We should search by name using the slug, converting it back if necessary, or ensure category names are URL-friendly.
+        // For now, let's assume the slug directly matches the category name if it's already URL-friendly or if name is used for slugs.
+        // If Category model had a slug field, it should be: Category.findOne({ slug: categorySlug });
+        // Since it doesn't, we'll try to find by name, matching the slug.
+        const category = await Category.findOne({
+            $or: [
+                { name: categorySlug }, // Direct match
+                { name: new RegExp(categorySlug.replace(/-/g, ' '), 'i') } // Match with spaces
+            ]
+        });
+
+
         if (!category) {
             return res.status(404).json({ error: 'Category not found' });
         }
@@ -456,7 +470,8 @@ export const uploadImage = async (req, res) => {
 
         if (!file) return res.status(400).json({ error: 'No image file uploaded' });
 
-        const result = await cloudinary.uploader.upload(file.path, {
+        // Corrected line to use buffer and base64 encoding
+        const result = await cloudinary.uploader.upload(`data:${file.mimetype};base64,${file.buffer.toString('base64')}`, {
             folder: 'blogs',
             resource_type: 'image'
         });
@@ -499,4 +514,3 @@ export const getMostLikedBlogByTag = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch top blog for tag' });
     }
 };
-

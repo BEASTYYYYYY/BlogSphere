@@ -4,8 +4,9 @@ import axios from 'axios';
 import { useAuth } from './AuthContext';
 
 const CategoryContext = createContext();
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ; // Ensure this is set in your .env file
+
 export const useCategory = () => useContext(CategoryContext);
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ; 
 
 export const CategoryProvider = ({ children }) => {
     const [topCategories, setTopCategories] = useState([]);
